@@ -1,0 +1,4 @@
+source leaprc.protein.ff14SB
+mol = sequence {VAL}
+savepdb mol ACE-V-NME.pdb
+quit
