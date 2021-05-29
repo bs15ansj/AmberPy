@@ -114,7 +114,9 @@ You will now have access to AmberPy anywhere on your computer (you don't need to
 
 ### Executing program
 
-Incomplete
+AmberPy is designed to be used by anyone with access to an Arc account and a Linux machine, from beginner to advanced. There are different levels of complexity that can be employed to run your simulations:
+* Level 1: You just want to run a simple simulation using all of the defaults to make a nice movie of a protein. No python needed.
+* Level 2: You know a little python and want to be able to modify basic simulation settings; simulation time, temperature, salt conce
 
 ## Help
 
