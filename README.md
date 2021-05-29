@@ -6,8 +6,9 @@ AmberPy is a tool for performing molecular dynamics simulations using Amber on t
 
 AmberPy makes perfoming molecular dynamics simulations simple. To run, all you need is access to a Linux machine and an account on the Arc. Setting up and running a simulation can be done wth a command as simple as:
 ```
-amberpy [pdb_file]
+james [pdb_file]
 ```
+
 Alternatively, AmberPy can be used as a python library to perform simulations using a script as simple as:
 ```
 from amberpy.experiments import ProteinSimulation
