@@ -7,22 +7,47 @@ Created on Fri May 28 09:33:45 2021
 """
 
 from amberpy.experiments import ProteinSimulation
+from amberpy.config import remoteworkdir
 import sys
+import argparse
+import os
 
 def main():
-    protein_simulation = ProteinSimulation(sys.argv[1])
+    # Get the username of the persom using the script from ~
+    username = os.path.basename(os.path.expanduser("~"))
+    
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument('pdb_file', metavar='pdb_file', help='Pdb file to simulate.')
+    
+    # Add username argument. If not specified, assume that the username is the 
+    # same as the ~ directory
+    parser.add_argument('-u', '--username', default=username, help=('Your username'
+                        ' for logging into Arc. If not specified, the username is '
+                        ' taken from the ~ directory'), type=str)
+    # Add arc argument
+    parser.add_argument('-a', '--arc', default=3, help=('The Arc version you want'
+                        'to run simulations on. Can be 3 or 4. Default is 3'), 
+                        type=int)
+    
+    # Add remoteworkdir
+    parser.add_argument('-rwd', '--remote_work_directory', default=remoteworkdir, 
+                        help=('Directory on Arc in which to perform the simulation'
+                        '. If no directory is specified, this will default first '
+                        'to the remoteworkdir variable specified in '
+                        'amberpy/config.py, then to /nobackup/[username] if no '
+                        'directory is specified in amberpy/config.py'), type=str)
+    
+    args = parser.parse_args()
+    
+    protein_simulation = ProteinSimulation(args.pdb_file)
     protein_simulation.make_system()
     protein_simulation.add_minimisation_step()
     protein_simulation.add_equilibration_step()
     protein_simulation.add_production_step()
-    protein_simulation.run(username=sys.argv[2], remoteworkdir=sys.argv[4], 
-                           arc=int(sys.argv[3]))
+    protein_simulation.run(username=args.username, remoteworkdir=args.remote_work_directory, 
+                           arc=args.arc)
 
 if __name__ == "__main__":
-    try:
-        arg1 = sys.argv[1]
-    except IndexError:
-        print("Usage: james [pdb_file] [arc_username] [3/4] [path/to/your/arc/nobackup/directory]")
-        sys.exit(1)
-        
+
     main()
