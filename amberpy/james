@@ -31,7 +31,7 @@ def main():
                         type=int)
     
     # Add remoteworkdir
-    parser.add_argument('-rwd', '--remote_work_directory', default=remoteworkdir, 
+    parser.add_argument('-rwd', '--remote_work_directory', default=None, 
                         help=('Directory on Arc in which to perform the simulation'
                         '. If no directory is specified, this will default first '
                         'to the remoteworkdir variable specified in '
@@ -39,6 +39,23 @@ def main():
                         'directory is specified in amberpy/config.py'), type=str)
     
     args = parser.parse_args()
+
+    fname = os.path.expanduser('~/.amberpy/remoteworkdir.conf')
+    if not os.path.isfile(os.path.expanduser('~/.amberpy/remoteworkdir.conf')):
+        print('No ~/.amberpy/remoteworkdir.conf found, making now')
+        if args.remote_work_directory is None:
+            raise Exception('Please run james once and use the --remote_work_'
+                            'directory flag to specify the directory on Arc'
+                            ' that simulations should be run in if this is '
+                            'your first time. You only have to do this once.')
+        else:
+            os.mkdir(os.path.expanduser('~/.amberpy'))
+            with open(fname, 'w+') as f:
+                f.write('remoteworkdir={args.remote_work_directory}\n')
+                
+    if args.remote_work_directory is None:
+        with open(fname, 'r') as f:
+            args.remote_work_directory = f.readlines().strip.split('=')[1]
     
     protein_simulation = ProteinSimulation(args.pdb_file)
     protein_simulation.make_system()
