@@ -123,8 +123,7 @@ Incomplete
 
 Contributors names and contact info
 
-ex. Alex St John 
-ex. (https://github.com/bs15ansj)
+Alex St John (bs15ansj@leeds.ac.uk)
 
 ## Version History
 
