@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri May 28 09:33:45 2021
+
+@author: bs15ansj
+"""
+
+from amberpy.experiments import ProteinSimulation
+import sys
+
+def main():
+    protein_simulation = ProteinSimulation(sys.argv[1])
+    protein_simulation.make_system()
+    protein_simulation.add_minimisation_step()
+    protein_simulation.add_equilibration_step()
+    protein_simulation.add_production_step()
+    protein_simulation.run(username=sys.argv[2], remoteworkdir=sys.argv[4], 
+                           arc=int(sys.argv[3]))
+
+if __name__ == "__main__":
+    try:
+        arg1 = sys.argv[1]
+    except IndexError:
+        print("Usage: james [pdb_file] [arc_username] [3/4] [path/to/your/arc/nobackup/directory]")
+        sys.exit(1)
+        
+    main()

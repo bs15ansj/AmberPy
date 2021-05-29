@@ -5,20 +5,28 @@ Created on Thu May 20 12:02:00 2021
 
 @author: bs15ansj
 """
+import os
 from longbow.entrypoints import longbow
-import logging 
+import logging
+
+# Setup logger (must be done like this so that the longbow logger works)
+LOG = logging.getLogger("longbow")
+logformat = logging.Formatter('%(asctime)s - %(levelname)-8s - '
+                              '%(name)s - %(message)s',
+                              '%Y-%m-%d %H:%M:%S')
+LOG.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setFormatter(logformat)
+LOG.addHandler(handler)
 
 # Setup parameter dictionary 
 parameters = {'disconnect': False, 
-              'handler': 'mpirun',
               'job': '', 
-              'hosts': '',
+              'hosts': os.path.expanduser('~/.longbow/amberpy_hosts.conf'),
               'maxtime': '48:00', 
               'nochecks': False,
               'resource': '',
-              'scheduler': 'sge',
-              'sge-peflag': 'ib',
-              'user': 'bs15ansj'}
+              'sge-peflag': 'ib',}
 
 def crossbow(name, 
              user,
@@ -52,27 +60,21 @@ def crossbow(name,
     elif gpu == False and cores is None:
         raise Exception("Please specify either gpu or cores")
         
-    # Set gpu/cpu parameters
-    if gpu == True:
-        parameters['executable'] = 'pmemd.cuda_SPFP'
-        parameters['cores'] = '0'
-        parameters['modules'] = 'amber/20gpu'
-        if arc == 3:
-            parameters['gpu'] = 'p100'
-        elif arc == 4:
-            parameters['gpu'] = 'v100'
-    elif cores is not None:
-        parameters['executable'] = 'pmemd.MPI'
+    if cores is not None:
         parameters['cores'] = str(cores)
-        parameters['modules'] = 'amber'
+        if arc == 3:
+            parameters['resource'] = 'arc3-cpu'
+        elif arc == 4:
+            parameters['resource'] = 'arc4-cpu'
+            
+    # Set gpu/cpu parameters
+    elif gpu == True:
+        parameters['cores'] = str(0)
+        if arc == 3:
+            parameters['resource'] = 'arc3-gpu'
+        elif arc == 4:
+            parameters['resource'] = 'arc4-gpu'
 
-    # Select resource based on arc input
-    if arc == 3:
-        parameters['host'] = 'arc3'
-    elif arc == 4:
-        parameters['host'] = 'arc4'
-    else:
-        raise Exception('Arc can only be 3 or 4')
     
     # Set exectutable arguments from inputs/outputs
     parameters['executableargs'] = f'-O -i {mdin} -p {parm7} -c {rst7} -o {mdout} -r {out_rst7} -inf {mdinfo} -ref {ref_rst7} -x {nc}'
@@ -82,7 +84,7 @@ def crossbow(name,
         parameters['executableargs'] = f'-O -i {mdin} -p {parm7} -c {rst7} -o {mdout} -r {out_rst7} -inf {mdinfo} -ref {ref_rst7}'
 
     # Add some extra parameters
-    parameters['log'] = f'{name}.log'
+    parameters['log'] = os.path.join(localworkdir, f'{name}.log')
     parameters['hold_jid'] = hold_jid
     parameters['jobname'] = name
     parameters['upload-include'] = ', '.join([mdin, parm7, rst7, ref_rst7])

@@ -320,11 +320,11 @@ class EquilibrationInput(MDInput):
         # Turn minimisation off
         kwargs['imin'] = 0
         
-        # Continue on from restart file
-        kwargs['irest'] = 1
+        # This is not a restart from a previous simulation
+        kwargs['irest'] = 0
         
-        # Read velocities from coordinate file
-        kwargs['ntx'] = 5
+        # Coordinate file does not have velocities
+        kwargs['ntx'] = 1
 
         # Turn off ntp
         kwargs['ntp'] = 0
@@ -630,7 +630,7 @@ class Simulation:
             kwargs = {}
             kwargs['dt'] = timestep
             kwargs['cut'] = nb_cutoff
-            kwargs['nstlim'] = int(simulation_time/kwargs['dt'])
+            kwargs['nstlim'] = int((1000*simulation_time)/kwargs['dt'])
             kwargs['temp0'] = target_temperature
             
             # Add a ProductionInput object to the simulation using the key 
@@ -698,7 +698,7 @@ class Simulation:
             # Get the name for the job from the simulation name, step name, and 
             # step number
             step_type = md_step.__str__()
-            job_name = self.name + step_type[:3] + str(i)
+            job_name = self.name + '.' + step_type[:3] + '.' + str(i)
             self.md_job_names.append(job_name)
             
             # Get the positional arguments in a tuple. The positional arguments
@@ -716,9 +716,6 @@ class Simulation:
             if step_type == 'minimisation':
                 kwargs['minimisation'] = True
                 kwargs['cores'] = cores
-                
-            elif step_type in ('equilibration', 'production'):
-                kwargs['gpu'] = True
         
             if i != 1:
                 kwargs['hold_jid'] = self.md_job_names[i-2]

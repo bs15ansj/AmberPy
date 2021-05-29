@@ -6,7 +6,7 @@ Created on Tue May 25 17:59:50 2021
 @author: bs15ansj
 """
 
-from experiments import ProteinSimulation, CosolventSimulation, ProteinCosolventSimulation
+from amberpy.experiments import ProteinSimulation, CosolventSimulation, ProteinCosolventSimulation
 
 p = ProteinSimulation('CTB.pdb')
 p.make_system()
