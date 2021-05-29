@@ -160,12 +160,14 @@ experiment = ProteinSimulation([pdb_file], name='my_experiment', replica_name='1
 
 Next, you will call the .make_system() method on your experiment to create the files needed for the simulation. For a ProteinSimulation, this will create a water box around the protein, add ions to the box, and generate paramater/topology and coordinate files that can be read by the simulation software. If you call the .make_system() method without any arguments, AmberPy will just use the defaults:
 ```
-# Creates a cubic box whose edges are at least 12 Angstroms away from the protein and adds sodium and chloride ions to neutralise the system.
+# Creates a cubic box whose edges are at least 12 Angstroms away from the protein and adds sodium 
+# and chloride ions to neutralise the system.
 experiment.make_system()
 ```
 You can also specify the arguments yourself. The code below is exactly equivalent to the code above (defaults are just specified). 
 ```
-# Creates a cubic box whose edges are at least 12 Angstroms away from the protein and adds sodium and chloride ions to neutralise the system.
+# Creates a cubic box whose edges are at least 12 Angstroms away from the protein and adds sodium 
+# and chloride ions to neutralise the system.
 experiment.make_system(box_distance=12.0, box_shape='box', ions={'Na+': 0, 'Cl-':0})
 ```
 The argument box_distance can be any positive number, box_shape can be either 'box' for a cubic box, or 'oct' for a truncated octahedron, and ions must be a dictionary containing the names of the ions you want to add as elements, and the number of each of the ions you want to add as values. Specifying 0 ions simply tells AmberPy to attempt to neutralise the system with that ion. 
