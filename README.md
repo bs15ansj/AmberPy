@@ -23,7 +23,7 @@ This tool is intended to be used by students and staff at the University of Leed
 
 ## Documentation
 
-View the full documentation at https://amberpy.readthedocs.io/en/latest/.
+View the full documentation at amberpy.readthedocs.io.
 
 ## References
 
