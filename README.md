@@ -33,9 +33,11 @@ D.A. Case, H.M. Aktulga, K. Belfon, I.Y. Ben-Shalom, S.R. Brozell, D.S. Cerutti,
 
 ## Authors
 
-Contributors names and contact info
-
 Alex St John (bs15ansj@leeds.ac.uk)
+
+## Help
+
+This package is currently in early development and so issues may be present. If you have any queries at all please don't hesitate to contact the author. 
 
 ## Version History
 
