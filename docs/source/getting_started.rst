@@ -128,7 +128,7 @@ AmberPy is designed to be used by anyone with access to an Arc account and a Lin
 
 * Level 3: You know a little python but want to have more control over your MD set up and simulation.
 
-* Level 4: You are a python programmer and would like to create your own objects to have more control over how your simulations are set up and run.
+* Level 4: You are a python programmer and would like to create your own classes to have more control over how your simulations are set up and run.
 
 * Level 5: You are a python developer and want to contribute to this repository. 
 
@@ -214,12 +214,9 @@ Again, you can add your own arguments here if you want. The main part that you m
 
 .. code-block:: python
 
-   experiment.add_minimisation_step(steepest_descent_steps=2500, conjugate_gradient_steps=2500,
-                                 nb_cutoff=9.0, restraints='protein')
-   experiment.add_equilibration_step(initial_temperature=0.0, target_temperature=310.0, 
-                                 nb_cutoff=9.0, restraints='protein', simulation_time=125.0)
-   experiment.add_production_step(timestep=0.004, target_temperature=310.0, nb_cutoff=9.0,
-                               simulation_time=100.0)
+   experiment.add_minimisation_step(steepest_descent_steps=2500, conjugate_gradient_steps=2500, nb_cutoff=9.0, restraints='protein')
+   experiment.add_equilibration_step(initial_temperature=0.0, target_temperature=310.0, nb_cutoff=9.0, restraints='protein', simulation_time=125.0)
+   experiment.add_production_step(timestep=0.004, target_temperature=310.0, nb_cutoff=9.0, simulation_time=100.0)
 
 For the minimisation step, you probably won't need to change anything. The arguments ``steepest_descent`` and ``conjugate_gradient`` simply tell Amber how many minimisation steps of each of the respective algorithms it should run (see the Amber manual for more details https://ambermd.org/doc12/Amber21.pdf). The ``nb_cutoff`` parameter (which is used by all steps and should be the same for each) tells Amber at what distance it should stop calculating non-bonded (electrostatic, VdW) interactions between atoms. Lowering this value may speed up your simulation since fewer calculations need to be made during each step, but will decrease the accuracy. The ``restraints`` argument places positional restraints on the protein (if you set ``restraints='protein'``). If instead you provide a tuple to this argument, restraints will be placed on a range of residues specified by the tuple, for example, ``restraints=(1,100)`` places positional restraints on residues 1 to 100. For most cases you can leave the restraints as they are (applied to the protein) since you probably don't want your protein to move too much during minimisation and equilibration. 
 
@@ -245,5 +242,39 @@ When you have finished writing your script, simply run it with:
 .. code-block:: console
 
    (amberpy) username@machine:~$ python [name_of_your_script].py
+
+Level 3
+*******
+
+If you are already comfortable with using Amber to set up and run molecular dynamics simulations, then you may want to directly specify particular commands. AmberPy uses three programs from Amber; Packmol, Tleap and pmemd. Instead of providing arguments to experiment methods, you can provide an one of the following input classes:
+
+* PackmolInput
+
+* TleapInput
+
+* MinimisationInput
+
+* EquilibrationInput
+
+* ProductionInput
+
+These inputs provide a wider range of arguments than those provided in the experiment methods. For example, if you wanted to add a ligand to your system you could use the ``frcmod_list`` and ``mol2_dict`` arguments to create a TleapInput instance, and then provide that to your ``make_system`` method:
+
+.. code-block:: python
+
+   tleap_input = TleapInput(frcmod_list=['frcmod.ligand'], mol2_dict={'LIG', 'ligand.mol2'})
+
+   experiment = ProteinSimulation('protein_and_ligand.pdb')
+   experiment.make_system(tleap_input=tleap_input)
+
+If you want to see a full description of all of the input classes and what arguments they can take, please see the API reference.
+
+Level 4
+*******
+
+
+
+
+
 
 

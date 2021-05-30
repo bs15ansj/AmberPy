@@ -19,7 +19,7 @@ class TleapInput:
     '''
     def __init__(
             self,
-            protein_forcefield: str = "ff14SB",
+            protein_forcefield: str = "ff19SB",
             water_forcefield: str = "tip3p",
             solvate: bool = True,
             shape: str = "box",
