@@ -25,47 +25,64 @@ from typing import Union
 
 
 class MDInput:
-    '''
-    Base class for MD inputs. Do not use this class directly, but instead, use
-    one of the classes that inherits from this class: MinimisationInput, 
-    EquilibrationInput, ProductionInput. These subclasses determine which 
-    attributes will be turned on/off.
+    '''Base class for MD inputs.
+    Do not use this class directly, but instead, use one of the classes that 
+    inherits from this class: MinimisationInput, EquilibrationInput, 
+    ProductionInput. These subclasses determine which attributes will be 
+    turned on/off. In theory, any valid MD flag that can be used with Amber's
+    pmemd.cuda_SPFP can be given to this input object and will be written into
+    the mdin file. The attributes listed here are the most common ones, but 
+    please refer the Amber manual for a more detailed description 
+    (https://ambermd.org/doc12/Amber21.pdf).
     
     Attributes
     ----------
     imin : int, default=0
         Flag to run minimisation. 
+        
         0 = run molecular dynamics without any minimisation.
+        
         1 = perform energy minimisation.
     
     maxcyc : int, default=5000 
-        The maximum number of minimization cycles to use.
+        The maximum number of minimisation cycles to use.
     
     ncyc : int, default=2500
         The number of steepest descent minimisation cycles to use.
 
     irest : int, default=1
-        Flag to restart a simulation. 
-        0 = do not restart a simulation, instead start a new one ignoring 
-            velocities and setting the timestep count to 0.
-        1 = restart the simulation, reading coordinates and velocities from a 
-            previously saved restart file.
+        Flag to restart from a simulation. 
+        
+        0 = do not restart from a simulation, instead start a new one ignoring 
+        velocities and setting the timestep count to 0.
+        
+        1 = restart from a simulation, reading coordinates and velocities from 
+        a previously saved restart file.
     
     ntx : int, default=5
         Flag to read velocities from coordinate file. 
+        
         1 = read coordinates but not velocities.
+        
         5 = read coordinates and velocities.
     
     ntt : int, default=3
         Flag for temperature scaling. 
+        
         0 = constant total energy classsical dynamics.
+        
         1 = constant temperature using the weak coupling algorithm.
+        
         2 = Anderson-like temperature coupling.
+        
         3 = use Langevin dynamics with a collision frequency given by gamma_ln.
+        
         9 = optimized  Isokinetic  Nose-Hoover  chain  ensemble.
+        
         10 = stochastic  Isokinetic  Nose-Hoover  RESPA  integrator.
+        
         11 = stochastic version of Berendsen thermostat, also known as Bussi 
-             thermostat
+        thermostat
 
     gamma_ln : float, default=1.0
         Friction coefficient (ps^-1) when ntt=3.
@@ -88,23 +105,33 @@ class MDInput:
     
     ntc : int, default=2
         Flag for SHAKE to perform bond length constraints.
+        
         1 = SHAKE is not performed.
+        
         2 = bonds containing hydrogen are constrained. 
+        
         3 = all bonds are constrained. 
         
     ntf : int, default=2
         Flag for force evaluation (typically set ntf=ntc).
+        
         1 = complete interaction calculated.
+        
         2 = bond interactions involving H-atoms omitted (use with ntc=2).
+        
         3 = all the bond interactions are omitted (use with ntc=3).
+        
         4 = angle involving H-atoms and all bonds are omitted.
+        
         5 = all bond and angle interactions are omitted.
+        
         6 = dihedrals involving H-atoms and all bonds and all angle 
-            interactions are omitted.
+        interactions are omitted.
+        
         7 = all bond, angle and dihedral interactions are omitted.
+        
         8 = all bond, angle, dihedral and non-bonded interactions are omitted.
         
-    
     ntpr : int, default=1000
         Write energy information to mdout and mdin files every 'ntpr' steps.
         
@@ -116,37 +143,51 @@ class MDInput:
         
     ntwv : int, default=0
         Write velcities to an mdvel file every 'ntwv' steps. 
+        
         -1 = write velocities to trajectory at an interval defined by 'ntwx'. 
+        
         0 = do not write velocities.
         
     ntwf : int, default=0
         Write forces to an mdfrc file every 'ntwf' steps. 
+        
         -1 = write forces to trajectory at an interval defined by 'ntwx'.
+        
         0 = do not write forces.
 
     ntxo : int, default=2
         Restart file format. 
+        
         1 = formatted (ASCII).
+        
         2 = netCDF (nc, recommended).
         
     ioutfm : int, default=1
         Trajectory/velocity file format. 
+        
         1 = formatted (ASCII).
+        
         2 = netCDF (nc, recommended).
 
     iwrap : int, default=1
         Coordinate wrapping.
+        
         0 = do not wrap. 
+        
         1 = wrap coordinates when printing them to the same unit cell.
     
     barostat : int, default=2
         Barostat flag.
+        
         1 = Berendsen.
+        
         0 = Mont Carlo.
     
     ntp : int, default=0
         Flag for constant pressure dynamics. Set to >0 for NPT ensemble.
+        
         0 = No pressure scaling. 
+        
         1 = isotropic position scaling. 
 
     pres0 : float, default=1.0
@@ -156,11 +197,6 @@ class MDInput:
         Tuple of residue numbers defining start/end residues of protein chains 
         to be constrained.
         
-    Methods
-    -------
-    write(out_dir, fname)
-        Writes an mdin file containing flags for all of the turned on 
-        attributes.
     '''
 
     def __init__(self, **kwargs):
@@ -178,11 +214,6 @@ class MDInput:
         **kwargs
             The parameters for this argument can be set to any of the 
             attributes listed in the docstring of this class.
-
-        Returns
-        -------
-        None.
-
         '''
         
         # Set required (default) attributes
@@ -241,8 +272,7 @@ class MDInput:
         self.arg_dict = {arg : self.__dict__[arg] for arg in attributes}
     
     def write(self, out_dir, fname):
-        '''
-        Writes an mdin file containing flags for all of the turned on 
+        '''Writes an mdin file containing flags for all of the turned on 
         attributes. The filename is stored in the fname attribute.
         
         Parameters
@@ -274,9 +304,8 @@ class MDInput:
                 f.write("/\nEND")
 
 class MinimisationInput(MDInput):
-    '''
-    Minimisation input class. Inherits attributes and methods from the MDInput
-    class. 
+    '''Minimisation input class. 
+    Inherits attributes and methods from the MDInput class. 
     '''
     def __init__(self, **kwargs):
         '''
@@ -298,13 +327,13 @@ class MinimisationInput(MDInput):
         super().__init__(**kwargs)
     
     def __str__(self):
+        '''str: The name of the input. Used for file naming.'''
         return 'minimisation'
 
 
 class EquilibrationInput(MDInput):
-    '''
-    Equilibration (NVT) input class. Inherits attributes and methods from the 
-    MDInput class.
+    '''Equilibration (NVT) input class. 
+    Inherits attributes and methods from the MDInput class.
     '''    
     def __init__(self, **kwargs):
         '''
@@ -337,12 +366,13 @@ class EquilibrationInput(MDInput):
         super().__init__(**kwargs)
 
     def __str__(self):
+        '''str: The name of the input. Used for file naming.'''
         return 'equilibration'
 
 class ProductionInput(MDInput):
     '''
-    Production (NPT) input class. Inherits attributes and methods from the 
-    MDInputclass.
+    Production (NPT) input class. 
+    Inherits attributes and methods from the MDInputclass.
     '''        
     def __init__(self, **kwargs):
         '''
@@ -374,9 +404,7 @@ class ProductionInput(MDInput):
         return 'production'
 
 class Simulation:
-    
-    """
-    Class for running MD simulations.
+    """Class for running MD simulations.
     
     Attributes
     ----------
@@ -400,41 +428,13 @@ class Simulation:
     rst7 : str
         Path of the rst7 file made by tleap.
         
-    Methods
-    -------
-        
-    add_minimisation_step(steepest_descent_steps: int = 2500,
-                          conjugate_gradient_steps: int = 2500,
-                          nb_cutoff: float = 8.0, 
-                          restraints: str or tuple = 'protein',
-                          md_input: MinimisationInput = None)
-        Adds a minimisation step to the simulation.
-        
-    add_equilibration_step(initial_temperature: float = 0.0,
-                           target_temperature: float = 310.0,
-                           nb_cutoff: float = 8.0,
-                           time: float = 125.0,
-                           restraints: str or tuple = 'protein',
-                           md_input: EquilibrationInput = None)
-        Adds an equilibration step to the simulation.
-        
-    add_production_step(timestep: float = 0.002,
-                        nb_cutoff: float = 8.0,
-                        time: float = 100.0,
-                        restraints: str or tuple = None,
-                        md_input: EquilibrationInput = None)
-        Adds a production step to the simulation.
-        
-    run()
-        Writes mdin files and runs the simulation on arc using longbow.
-        
     """
     
     def __init__(self,
                  name,
                  parm7, 
                  rst7,
-                 simulation_directory=os.getcwd(),
+                 simulation_directory=None,
                  ):
         """
         Parameters
@@ -448,8 +448,10 @@ class Simulation:
         rst7 : str
             Path to the rst7 input file.
         
-        simulation_directory : str
-            Directory to perform the simulation in. 
+        simulation_directory : str or None
+            Directory to perform the simulation in. Defaults to current 
+            working directory if None
+        
         """
         
         # Set attributes from arguments
@@ -481,23 +483,28 @@ class Simulation:
             restraints: Union[str, tuple] = 'protein',
             md_input: MinimisationInput = None):
         
-        '''
-        Adds a minimisation step to the simulation.
+        '''Adds a minimisation step to the simulation.
         
         Parameters
         ----------
         steepest_descent_steps : int, optional
-            Number of steepest descent minimisation steps to perform
+            Number of steepest descent minimisation steps to perform.
+            
         conjugate_gradient_steps : int, optional
-            Number of conjugate gradient minimisation steps to perform
+            Number of conjugate gradient minimisation steps to perform.
+            
         nb_cutoff : float, optional
-            The non-bonded interaction cutoff limit in Angstroms
+            The non-bonded interaction cutoff limit in Angstroms.
+            
         restraints : str or tuple, optional
-            Add resraints to either the entire protein, e.g. restraints = "protein",
-            or to the residues defined by a length 2 tuple e.g. restraints = (1, 500).
+            Add resraints to either the entire protein, e.g. restraints = 
+            "protein", or to the residues defined by a length 2 tuple e.g. 
+            restraints = (1, 500).
+            
         md_input : MinimisationInput, optional
-            Overrides all other arguments and instead uses a MinimisationInput
+            Overrides all other parameters and instead uses a MinimisationInput
             instance.
+            
         '''
         
         # If no md_input provided, build one from the key word arguments
@@ -541,25 +548,31 @@ class Simulation:
             restraints: Union[str, tuple] = 'protein',
             md_input: EquilibrationInput = None):
     
-        '''
-        Adds a equilibration step to the simulation.
+        '''Adds a equilibration step to the simulation.
         
         Parameters
         ----------
         inintial_temperature : float, optional
-            Initial temperature to start equilibration in Kelvin
+            Initial temperature to start equilibration in Kelvin.
+            
         target_temperature : float, optional
-            Target temperature to reach by the end of the simulation in Kelvin
+            Target temperature to reach by the end of the simulation in Kelvin.
+            
         nb_cutoff : float, optional
-            The non-bonded interaction cutoff limit in Angstroms
+            The non-bonded interaction cutoff limit in Angstroms.
+            
         simulation_time : float, optional
-            Total MD simulation_time for the equilibration step in picoseconds
+            Total MD simulation_time for the equilibration step in picoseconds.
+            
         restraints : str or tuple, optional
-            Add resraints to either the entire protein, e.g. restraints = "protein",
-            or to the residues defined by a length 2 tuple e.g. restraints = (1, 500).
+            Add resraints to either the entire protein, e.g. restraints = 
+            "protein", or to the residues defined by a length 2 tuple e.g. 
+            restraints = (1, 500).
+            
         md_input : EquilibrationInput, optional
             Overrides all other arguments and instead uses an EquilibrationInput
             instance.
+            
         '''
         
         # If no md_input provided, build one from the key word arguments
@@ -605,8 +618,7 @@ class Simulation:
             md_input: EquilibrationInput = None
             ):
         
-        '''
-        Adds a Production step to the simulation.
+        '''Adds a Production step to the simulation.
         
         Parameters
         ----------
@@ -614,15 +626,19 @@ class Simulation:
             The integrator timestep to be used in the simulation. If hydrogen
             mass repartitioning is used, set this to 0.004, otherwise set to 
             0.002 (provided that SHAKE is not turned off manually).
+            
         target_temperature : float, optional
-            Target temperature to be kept at in Kelvin
+            Target temperature to be kept at in Kelvin.
+            
         nb_cutoff : float, optional
-            The non-bonded interaction cutoff limit in Angstroms
+            The non-bonded interaction cutoff limit in Angstroms.
+            
         simulation_time : float, optional
             Total MD simulation_time for the equilibration step in nanoseconds.
+            
         md_input : EquilibrationInput, optional
-            Overrides all other arguments and instead uses an EquilibrationInput
-            instance.
+            Overrides all other arguments and instead uses an 
+            EquilibrationInput instance.
         '''       
         
         # If no md_input provided, build one from the key word arguments
@@ -650,19 +666,21 @@ class Simulation:
             arc = 3,
             cores = 32
             ):
-        '''
-        Writes the mdin files and runs the simulation using crossbow.
+        '''Writes the mdin files and runs the simulation using crossbow.
 
         Parameters
         ----------
         remoteworkdir : str
             Full path to the directory on arc (should be on no backup) where 
             the simulations will be performed.
+            
         username : str
             Arc username for logging in via ssh.
+            
         arc : int, optional
             The Arc HPC cluster you want to perform the simulations on. Can be
             3 or 4. The default is 3.
+            
         cores : int, default=32
             The number of cores to use for minimisation (if minimisation is 
             used).
@@ -733,17 +751,20 @@ class Simulation:
 
     def _restraints_from_arg(self, arg):
         
-        '''
-        Converts restraints from argument to posres MDInput argument. If the 
-        argument will not be a valid posres argument an execption is raised.
+        '''Converts restraints from argument to posres MDInput argument. 
+        
+        If the argument will not be a valid posres argument an execption is 
+        raised.
         
         Parameters
         ----------
-        arg, restraint argument passed to method
+        arg
+            Restraint argument passed to method.
         
         Returns
         -------
-        restraints, MDInput object posres parameter
+        restraints : tuple
+            MDInput object posres parameter.
         '''
         
         if arg == 'protein':

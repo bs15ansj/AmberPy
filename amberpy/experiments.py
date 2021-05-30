@@ -1,23 +1,64 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Mar  8 16:41:36 2021
 
-@author: bs15ansj
-"""
-import math
 import os
-from typing import Union
-
-from amberpy.cosolvents import COSOLVENTS
-from amberpy.md_setup import Setup, TleapInput, PackmolInput, run_parmed
-from amberpy.simulation import Simulation, MinimisationInput, EquilibrationInput, ProductionInput
-from amberpy.tools import *
+from amberpy.md_setup import Setup, TleapInput, PackmolInput
+from amberpy.simulation import Simulation
+from amberpy.tools import get_protein_termini
 from amberpy.utilities import get_name_from_input_list
 
-class Experiment(Simulation, Setup):
+class Experiment(Setup, Simulation):
+    '''Base class for setting up and running an experiment. 
+    This class inherits from both the Simulation and Setup classes.
     
-    def __init__(self, name, replica_name, protein_pdb=None, cosolvent=None):
+    This class is intended to be inherited from by other classes that perform 
+    specific tasks e.g. ProteinExperient, CosolventExperiment, 
+    ProteinCosolventExperiment. If you want to make your own type of 
+    experiment then you should inherit from this class.
+
+    Attributes
+    ----------
+    name : str
+        The name of the experiment. 
+        
+    replica_name : str
+        The name of the replica (if this experiment is a replica).
+    
+    directory : str
+        The directory in which the experiment will take place.
+        
+    root_directory : str
+        The root directory containing all of the experiment directories if this
+        experiment is a replica.
+    '''
+    
+    def __init__(self, name, replica_name=None, protein_pdb=None, cosolvent=None):
+        '''
+        Parameters
+        ----------
+        name : str
+            The name to call the experiment. The name is required as it is 
+            assumed that name generation will be handled by objects inheriting
+            from this class. 
+            
+        replica_name : str or None, default=None
+            The name to call the replica (if this experiment is a replica). If 
+            this is not a replica then leave as the default, None.
+            
+        protein_pdb : str, default=None
+            Path to the protein_pdb file to be simulated.
+            
+        cosolvent : str, default=None
+            Three letter name of the cosolvent to be simulated. Available 
+            names are any pdb file names in the amberpy/cosolvent 
+            sub-directories.
+
+        Raises
+        ------
+        Exception
+            Raises an exception if no inputs are provided.
+
+        '''
 
         # Define list of valid inputs. If adding new inputs to the class, place 
         # them in here
@@ -35,7 +76,7 @@ class Experiment(Simulation, Setup):
         # If not already made, create directory based on name/replica name
         dirname = self.name.replace('.','')
         if self.replica_name is not None:
-            self.simulation_directory = os.path.join(os.getcwd(), dirname, str(self.replica_name))
+            self.directory = os.path.join(os.getcwd(), dirname, str(self.replica_name))
             self.root_directory = os.path.join(os.getcwd(), dirname)
     
             try:
@@ -44,25 +85,33 @@ class Experiment(Simulation, Setup):
                 pass
     
             try:
-                os.mkdir(self.simulation_directory)
+                os.mkdir(self.directory)
             except FileExistsError:
                 pass  
             
         else:
-            self.simulation_directory = os.path.join(os.getcwd(), dirname)
+            self.directory = os.path.join(os.getcwd(), dirname)
             self.root_directory = os.path.join(os.getcwd(), dirname)
-            if not os.path.isdir(self.simulation_directory):
-                os.mkdir(self.simulation_directory)
+            if not os.path.isdir(self.directory):
+                os.mkdir(self.directory)
     
-        Setup.__init__(self, self.name, protein_pdb, cosolvent, self.simulation_directory)
+        Setup.__init__(self, self.name, protein_pdb, cosolvent, self.directory)
         
-        Simulation.__init__(self, self.name, self.parm7, self.rst7, self.simulation_directory)
+        Simulation.__init__(self, self.name, self.parm7, self.rst7, self.directory)
         
     @property 
     def protein_termini(self):
-        return get_protein_termini(self.tleap_pdb)
+        '''tuple : Terminal residues in tleap_pdb file associated with the 
+        experiment.
+        '''
+        try:
+            return get_protein_termini(self.tleap_pdb)
+        except AttributeError:
+            raise Exception('This experiment object does not have a tleap_pdb'
+                            ' file associated with it needed to calculate '
+                            'obtain the protein termini.')
         
-class ProteinSimulation(Experiment):
+class ProteinExperient(Experiment):
     
     def __init__(self, protein_pdb, name = None, replica_name = None):
 
@@ -80,7 +129,7 @@ class ProteinSimulation(Experiment):
         if hmr:
             self.run_parmed()
 
-class CosolventSimulation(Experiment):
+class CosolventExperiment(Experiment):
     
     def __init__(self, cosolvent, name = None, replica_name = None):
 
@@ -93,7 +142,7 @@ class CosolventSimulation(Experiment):
                     ions: dict = {'Na+': 0, 'Cl-':0},
                     distance: float = 12.0,
                     hmr: bool = True,
-                    packmol_input = None):
+                    packmol_input: PackmolInput = None):
         
         self.run_packmol(n_waters, n_cosolvents, box_size, packmol_input)
         
@@ -107,7 +156,7 @@ class CosolventSimulation(Experiment):
         if hmr:
             self.run_parmed()                 
         
-class ProteinCosolventSimulation(CosolventSimulation, ProteinSimulation):
+class ProteinCosolventExperiment(CosolventExperiment, ProteinExperient):
     
     def __init__(self, protein_pdb, cosolvent, name = None, replica_name = None):
         
