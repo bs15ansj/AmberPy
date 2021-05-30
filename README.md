@@ -33,7 +33,8 @@ D.A. Case, H.M. Aktulga, K. Belfon, I.Y. Ben-Shalom, S.R. Brozell, D.S. Cerutti,
 
 ## Authors
 
-Alex St John (bs15ansj@leeds.ac.uk)
+Alex St John 
+* email: bs15ansj@leeds.ac.uk
 
 ## Help
 
