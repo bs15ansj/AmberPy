@@ -661,8 +661,6 @@ class Simulation:
             raise Exception('md_input must be an instance of the ProductionInput class or None')
 
     def run(self,
-            username,
-            remoteworkdir,
             arc = 3,
             cores = 32
             ):
@@ -721,14 +719,13 @@ class Simulation:
             
             # Get the positional arguments in a tuple. The positional arguments
             # for crossbow are (name, user, mdin, parm7, rst7, ref_rst7)
-            args = (job_name, username, self.md_inputs[i-1], parm7, rst7, 
+            args = (job_name, self.md_inputs[i-1], parm7, rst7, 
                     ref_rst7)
             
             # Create a key word argument dictionary for crossbow and add 
             # kwargs
             kwargs = {}
             kwargs['arc'] = arc
-            kwargs['remoteworkdir'] = remoteworkdir
             kwargs['localworkdir'] = self.simulation_directory
             
             if step_type == 'minimisation':

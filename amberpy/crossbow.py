@@ -22,14 +22,13 @@ LOG.addHandler(handler)
 # Setup parameter dictionary 
 parameters = {'disconnect': False, 
               'job': '', 
-              'hosts': os.path.expanduser('~/.longbow/amberpy_hosts.conf'),
+              'hosts': os.path.expanduser('~/.amberpy/hosts.conf'),
               'maxtime': '48:00', 
               'nochecks': False,
               'resource': '',
               'sge-peflag': 'ib',}
 
 def crossbow(name, 
-             user,
              mdin, 
              parm7, 
              rst7,
@@ -38,7 +37,6 @@ def crossbow(name,
              cores=None, 
              hold_jid='',
              arc=3,
-             remoteworkdir='',
              localworkdir='',
              minimisation=False):
     
@@ -91,9 +89,7 @@ def crossbow(name,
     parameters['upload-exclude'] = '*'
     parameters['download-include'] = ', '.join([mdout, mdinfo, out_rst7, nc])
     parameters['download-exclude'] = '*'
-    parameters['remoteworkdir'] = remoteworkdir
     parameters['localworkdir'] = localworkdir
-    parameters['user'] = user
     
 
     

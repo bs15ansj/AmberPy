@@ -111,7 +111,7 @@ class Experiment(Setup, Simulation):
                             ' file associated with it needed to calculate '
                             'obtain the protein termini.')
         
-class ProteinExperient(Experiment):
+class ProteinExperiment(Experiment):
     
     def __init__(self, protein_pdb, name = None, replica_name = None):
 
@@ -156,7 +156,7 @@ class CosolventExperiment(Experiment):
         if hmr:
             self.run_parmed()                 
         
-class ProteinCosolventExperiment(CosolventExperiment, ProteinExperient):
+class ProteinCosolventExperiment(CosolventExperiment, ProteinExperiment):
     
     def __init__(self, protein_pdb, cosolvent, name = None, replica_name = None):
         

@@ -30,7 +30,7 @@ setup(
         ],
     install_requires=['biopython',
                       'scikit-learn',
-                      'Longbow @ git+https://github.com/pacilab/Longbow.git@master'
+                     # 'Longbow @ git+https://github.com/pacilab/Longbow.git@master'
                       ],
     scripts=['amberpy/james']
 )
@@ -39,12 +39,49 @@ setup(
 try:
 
     # Setting up the .Longbow directory.
-    if os.path.isdir(os.path.expanduser('~/.longbow')):
-
-        print('Making AmberPy configuration file in ~/.longbow')
-
-        HOSTFILE = open(os.path.expanduser('~/.longbow/amberpy_hosts.conf'), 'w+')
-
+    if not os.path.isdir(os.path.expanduser('~/.amberpy')):
+        print('Making hidden AmberPy directory in ~')
+        os.mkdir(os.path.expanduser('~/.amberpy'))
+        
+    else:
+        print('Directory already exists at "~/.amberpy" - Skipping')
+    
+    if not os.path.isfile(os.path.expanduser('~/.amberpy/hosts.conf')):
+        
+        username = input("Enter your Arc username: ")
+        
+        # Check username will work in connecting to arc3 and arc4
+        from longbow.shellwrappers import sendtossh
+        
+        cmd = {}
+        cmd['port'] = '22'
+        cmd['user'] = username
+        cmd['host'] = 'arc3'
+        cmd["env-fix"] = "false"
+        
+        print(f'Running Longbow to check arc3 connection with username: {username}')
+        sendtossh(cmd, ['ls'])
+        print('Connection successful')
+        cmd['host'] = 'arc4'
+        print(f'Running Longbow to check arc4 connection with username: {username}')
+        sendtossh(cmd, ['ls'])
+        print('Connection successful')
+        
+        remoteworkdir = input('Enter the path to your /nobackup directory: ')
+        
+        cmd['host'] = 'arc3'
+        print('Running Longbow to check that /nobackup directory exists on arc3')
+        sendtossh(cmd, [f'touch {remoteworkdir}/tmp.txt'])
+        sendtossh(cmd, [f'rm {remoteworkdir}/tmp.txt'])
+        cmd['host'] = 'arc4'
+        print('Running Longbow to check that /nobackup directory exists on arc4')
+        sendtossh(cmd, [f'touch {remoteworkdir}/tmp.txt'])
+        sendtossh(cmd, [f'rm {remoteworkdir}/tmp.txt'])
+        
+        
+        print('Making AmberPy host configuration file in ~/.amberpy')
+        HOSTFILE = open(os.path.expanduser('~/.amberpy/hosts.conf'), 'w+')
+    
         HOSTFILE.write(
                     "[arc3-gpu]\n"
                     "host = arc3\n"
@@ -53,6 +90,8 @@ try:
                     "scheduler = arcsge\n"
                     "modules = amber/20gpu\n"
                     "executable = pmemd.cuda_SPFP\n"
+                    f"remoteworkdir = {remoteworkdir}\n"
+                    f"user = {username}\n"
                     "\n"
                     "[arc3-cpu]\n"
                     "host = arc3\n"
@@ -60,6 +99,8 @@ try:
                     "modules = amber\n"
                     "handler = mpirun\n"
                     "executable = pmemd.MPI\n"
+                    f"remoteworkdir = {remoteworkdir}\n"
+                    f"user = {username}\n"
                     "\n"
                     "[arc4-gpu]\n"
                     "host = arc4\n"
@@ -68,6 +109,8 @@ try:
                     "scheduler = arcsge\n"
                     "modules = amber/20gpu\n"
                     "executable = pmemd.cuda_SPFP\n"
+                    f"remoteworkdir = {remoteworkdir}\n"
+                    f"user = {username}\n"
                     "\n"
                     "[arc4-cpu]\n"
                     "host = arc4\n"
@@ -75,15 +118,15 @@ try:
                     "modules = amber\n"
                     "handler = mpirun\n"
                     "executable = pmemd.MPI\n"
+                    f"remoteworkdir = {remoteworkdir}\n"
+                    f"user = {username}\n"
                     "\n")
 
         HOSTFILE.close()
 
-    else:
 
-        print('Directory already exists at "~/.amberpy" - Skipping')
-
+        
 except IOError:
-
-    print('Amberpy failed to create the host configuration file in '
+    
+    print('AmberPy failed to create the host configuration file in '
           '"~/.amberpy/hosts.conf"')
