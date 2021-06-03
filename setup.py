@@ -11,9 +11,6 @@ from os.path import splitext
 from glob import glob
 from os.path import basename
 
-import pip
-
-pip.main(['install', 'Longbow @ git+https://github.com/pacilab/Longbow.git@master'])
 
 setup(
     name='AmberPy',
@@ -29,12 +26,12 @@ setup(
          # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
         'License :: OSI Approved :: MIT License',
         'Operating System :: Unix',
-
+        
         'Programming Language :: Python :: 3.7',
         ],
     install_requires=['biopython',
                       'scikit-learn',
-                     # 'Longbow @ git+https://github.com/pacilab/Longbow.git@master'
+                      'Longbow @ git+https://github.com/pacilab/Longbow.git@master'
                       ],
     scripts=['amberpy/james']
 )
@@ -44,48 +41,20 @@ try:
 
     # Setting up the .Longbow directory.
     if not os.path.isdir(os.path.expanduser('~/.amberpy')):
-        print('Making hidden AmberPy directory in ~')
+        print('Making hidden AmberPy directory at "~/.amberpy"')
         os.mkdir(os.path.expanduser('~/.amberpy'))
         
     else:
         print('Directory already exists at "~/.amberpy" - Skipping')
     
-    if not os.path.isfile(os.path.expanduser('~/.amberpy/hosts.conf')):
-        
-        username = input("Enter your Arc username: ")
-        
-        # Check username will work in connecting to arc3 and arc4
-        from longbow.shellwrappers import sendtossh
-        
-        cmd = {}
-        cmd['port'] = '22'
-        cmd['user'] = username
-        cmd['host'] = 'arc3'
-        cmd["env-fix"] = "false"
-        
-        print(f'Running Longbow to check arc3 connection with username: {username}')
-        sendtossh(cmd, ['ls'])
-        print('Connection successful')
-        cmd['host'] = 'arc4'
-        print(f'Running Longbow to check arc4 connection with username: {username}')
-        sendtossh(cmd, ['ls'])
-        print('Connection successful')
-        
-        remoteworkdir = input('Enter the path to your /nobackup directory: ')
-        
-        cmd['host'] = 'arc3'
-        print('Running Longbow to check that /nobackup directory exists on arc3')
-        sendtossh(cmd, [f'touch {remoteworkdir}/tmp.txt'])
-        sendtossh(cmd, [f'rm {remoteworkdir}/tmp.txt'])
-        cmd['host'] = 'arc4'
-        print('Running Longbow to check that /nobackup directory exists on arc4')
-        sendtossh(cmd, [f'touch {remoteworkdir}/tmp.txt'])
-        sendtossh(cmd, [f'rm {remoteworkdir}/tmp.txt'])
-        
-        
-        print('Making AmberPy host configuration file in ~/.amberpy')
-        HOSTFILE = open(os.path.expanduser('~/.amberpy/hosts.conf'), 'w+')
     
+    if not os.path.isfile(os.path.expanduser('~/.amberpy/hosts.conf')):
+        print('Making configuration file at "~/.amberpy/hosts.conf"')
+        username = os.getlogin()
+        remoteworkdir = '/nobackup/' + os.getlogin()
+
+        HOSTFILE = open(os.path.expanduser('~/.amberpy/hosts.conf'), 'w+')
+
         HOSTFILE.write(
                     "[arc3-gpu]\n"
                     "host = arc3\n"
@@ -128,7 +97,8 @@ try:
 
         HOSTFILE.close()
 
-
+    else:
+        print('File already exists at "~/.amberpy/hosts.conf" - Skipping')
         
 except IOError:
     
