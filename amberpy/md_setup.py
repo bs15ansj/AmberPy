@@ -122,7 +122,8 @@ class TleapInput:
         
         if self.save_protein:
             tleap_lines += f"savepdb mol {pdb_out}\n"
-
+        
+        tleap_lines += f"logfile {parm7_out.replace('parm7', 'tleap.log')}\n"
         tleap_lines += f"saveamberparm mol {parm7_out} {rst7_out}\nquit"
         print(f'Running Tleap with input:\n{tleap_lines}\n')
         run_tleap(tleap_lines)
