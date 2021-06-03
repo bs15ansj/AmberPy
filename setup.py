@@ -11,6 +11,10 @@ from os.path import splitext
 from glob import glob
 from os.path import basename
 
+import pip
+
+pip.main(['install', 'Longbow @ git+https://github.com/pacilab/Longbow.git@master'])
+
 setup(
     name='AmberPy',
     version='0.0.1',

@@ -35,9 +35,10 @@ amino_acids = [
      ]
 
 for amino_acid in amino_acids:
-    lines = "source leaprc.protein.ff14SB\n"
+    lines = "source leaprc.protein.ff19SB\n"
     lines += "mol = sequence {ACE" + f" {amino_acid} " + "NME}\n"
     lines += f"savepdb mol {amino_acid}.pdb\n"
+    lines += f"saveamberparm mol {amino_acid}.parm7 {amino_acid}.rst7\n"
     lines += "quit\n"
 
     tleap_inp = tempfile.NamedTemporaryFile(mode="w",
