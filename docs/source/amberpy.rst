@@ -1,6 +1,14 @@
 amberpy package
 ===============
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   amberpy.cosolvents
+
 Submodules
 ----------
 

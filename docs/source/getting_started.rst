@@ -113,9 +113,11 @@ and type:
 
 .. code-block:: console
     
-   (amberpy) username@machine:~/AmberPy$ python setup.py install
+   (amberpy) username@machine:~/AmberPy$ pip install .
 
 You will now have access to AmberPy anywhere on your computer (you don't need to be in the AmberPy directory to use it).
+
+Finally, you may need to edit the configuration file that is created during installation at ``~/.amberpy/hosts.conf``. This file provides Longbow with the inputs needed to run on Arc. The only variables that you may need to change are ``user`` and/or ``remoteworkdir``. By default, these will be set to your username on the computer that you are using, and a directory with that username on nobackup. If your username/directory are different to this, then edit these variables. 
 
 Using AmberPy
 -------------
@@ -143,13 +145,7 @@ In order to run a very simple program that comes with AmberPy called ``james``, 
     
    (amberpy) username@machine:~$ james [pdb_file]
 
-where [pdb_file] is the name of the pdb file in your directory that you want to simulate. If it's your first time running the program, you'll need to use the --remote_working_directory flag to add the path to your nobackup directory on arc where you want to run your simulations:
-
-.. code-block:: console
-    
-   (amberpy) username@machine:~$ james [pdb_file] --remote_working_directory /path/to/your/nobackup/directory
-
-You only need to specify use this flag during your first run, after which a file will appear at ``~/.amberpy/remoteworkdir.conf`` containing your remote working directory path so you don't have to specify it again. 
+where [pdb_file] is the name of the pdb file in your directory that you want to simulate. 
 
 The are few more options you can use with this program. Type:
 

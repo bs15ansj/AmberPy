@@ -29,6 +29,7 @@ This tool is intended to be used by students and staff at the University of Leed
    :caption: Contents
 
    getting_started
+   amberpy
 
 Indices and tables
 ==================
