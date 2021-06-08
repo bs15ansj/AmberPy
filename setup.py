@@ -8,7 +8,8 @@ Created on Thu May 27 21:36:58 2021
 from setuptools import setup, find_packages
 import os
 
-
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
 
 setup(
     name='AmberPy',
@@ -19,8 +20,9 @@ setup(
     author='Alex St John',
     author_email='bs15ansj@leeds.ac.uk',
     url='https://github.com/pacilab/AmberPy.git',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     packages=find_packages(include=['amberpy', 'amberpy*']),
-    package_data={'': ['*/*.pdb']},
     classifiers=[
          # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
         'License :: OSI Approved :: MIT License',
