@@ -8,6 +8,7 @@ Created on Thu Nov  5 11:12:13 2020
 import tempfile
 from subprocess import PIPE, Popen
 import os
+import shutil
 from amberpy.tools import get_max_distance
 from amberpy.utilities import get_name_from_input_list
 import amberpy.cosolvents as cosolvents_dir
@@ -212,7 +213,14 @@ class PackmolInput:
                               "end structure\n")            
         # If no protein pdb file provided, just add cosolvent molecules
         else:
-            water = os.path.join(cosolvents_dir.__path__._path[0], 'water.pdb')
+            
+            water = os.path.join(os.getcwd(), 'water.pdb')
+            shutil.copy(os.path.join(cosolvents_dir.__path__[0], 'water.pdb'),
+                         water)
+
+            cosolvent = os.path.join(os.getcwd(), 
+                                         os.path.basename(cosolvent_pdb))
+            shutil.copy(cosolvent_pdb, cosolvent)
 
             x, y, z = self.box_size
             if self.n_waters is not None:
@@ -222,17 +230,21 @@ class PackmolInput:
                                   "   add_amber_ter\n"
                                   'end structure\n')
                 
-            packmol_lines += (f'structure {cosolvent_pdb}\n'
+            packmol_lines += (f'structure {cosolvent}\n'
                            f'  number {self.n_cosolvents}\n'
                            f'  inside box 0. 0. 0. {x} {y} {z} \n'
                            "   add_amber_ter\n"
                            'end structure\n')
         print(f'Running Packmol with the input:\n{packmol_lines}\n')
         run_packmol(packmol_lines)
-
+        
+        
+        os.remove(water)
+        os.remove(cosolvent)
+        
 class Setup:
     
-    def __init__(self, name, protein_pdb=None, cosolvent=None, simulation_directory=os.getcwd()):
+    def __init__(self, name, protein_pdb=None, cosolvent=None, directory=os.getcwd()):
         
         # Define list of valid inputs. If adding new inputs to the class, place 
         # them in here
@@ -252,11 +264,11 @@ class Setup:
         if cosolvent is not None:    
             self._get_cosolvent_file_names(cosolvent)
             
-        self.simulation_directory = simulation_directory
+        self.directory = directory
         
-        self.parm7 = os.path.join(self.simulation_directory, self.name) + '.parm7'
-        self.rst7 = os.path.join(self.simulation_directory, self.name) + '.rst7'  
-        self.tleap_pdb = os.path.join(self.simulation_directory, self.name) + '.tleap.pdb' 
+        self.parm7 = os.path.join(self.directory, self.name) + '.parm7'
+        self.rst7 = os.path.join(self.directory, self.name) + '.rst7'  
+        self.tleap_pdb = os.path.join(self.directory, self.name) + '.tleap.pdb' 
         
     def run_packmol(self,
                     n_waters = None, 
@@ -323,11 +335,12 @@ class Setup:
             
             tleap = TleapInput(**kwargs)
         
-        elif isinstance(tleap_input, TleapInput):
+        else:
             tleap = tleap_input
             
-        else:
-            raise Exception('tleap_input must be an instance of the TleapInput class or None')
+        #else:
+         #   print(type(tleap_input))
+          #  raise Exception('tleap_input must be an instance of the TleapInput class or None')
         
         if hasattr(self, 'packmol_pdb'):
             tleap.run(self.packmol_pdb, self.parm7, self.rst7, self.tleap_pdb)
@@ -362,7 +375,7 @@ class Setup:
             self.frcmod_list = [cosolvent_frcmod]
             self.mol2_dict = {os.path.basename(cosolvent_mol2).split('.')[0] : cosolvent_mol2}
             
-        self.packmol_pdb = os.path.join(self.simulation_directory, self.name) + '.packmol.pdb'
+        self.packmol_pdb = os.path.join(self.directory, self.name) + '.packmol.pdb'
 
 def run_parmed(parm7, HMRparm7):
 
