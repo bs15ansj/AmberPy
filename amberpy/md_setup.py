@@ -239,8 +239,7 @@ class PackmolInput:
         run_packmol(packmol_lines)
         
         
-        os.remove(water)
-        os.remove(cosolvent)
+
         
 class Setup:
     
