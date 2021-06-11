@@ -10,7 +10,28 @@ import os
 from Bio.PDB import *
 from sklearn.metrics.pairwise import euclidean_distances
 import warnings
+import os
+
+
 warnings.simplefilter('ignore')    
+
+def get_amber_residue_names(lib_files=['aminoct12.lib', 'aminont12.lib','amino19.lib',
+                                       'atomic_ions.lib', 'atomic_ions.lib']):
+    
+    names = []
+    
+    for file in lib_files:
+        lines = open(os.path.join(os.environ['AMBERHOME'], 'dat/leap/lib', file), 'r').readlines()
+        for line in lines[1:]:
+            if not line.startswith('!'):
+                names.append(line.strip().replace('"', ''))
+            else:
+                break
+    
+    names.append('HIS')
+    
+    return names      
+            
 
 def count_waters(pdb):
     lines = open(pdb, 'r').readlines()
@@ -33,17 +54,42 @@ def get_box_dimensions(pdb):
     return [float(x), float(y), float(z)]
 
 def get_protein_termini(pdb):
-    lines = open(pdb, 'r').readlines()
     
-    lines = [line for line in lines if line.startswith('ATOM')]
+    protein_residue_names = get_amber_residue_names(lib_files=['aminoct12.lib', 'aminont12.lib','amino19.lib'])
     
-    resids = [int(line[22:31].strip()) for line in lines if line[17:20] != 'WAT']
+    parser = PDBParser()
+    structure = parser.get_structure('tmp', pdb)
+
+    protein_residues = [residue for residue in structure.get_residues() if residue.resname in protein_residue_names]
+    tleap_indices = list(range(1, len(list(protein_residues))+1))
+    pdb_to_tleap = {(residue._id[1], residue.full_id[2]) : tleap_indices[i] for i, residue in enumerate(protein_residues)}
     
-    # Check if resids are continuous
-    if list(range(min(resids), max(resids)+1, 1)) == list(set(resids)):
-        return min(resids), max(resids)
+    indices = []
+    for chain in structure.get_chains():
+        chain_indices = []
+        for residue in chain:
+            
+            if residue.resname in protein_residue_names:
+
+                chain_indices.append(pdb_to_tleap[(residue._id[1], residue.full_id[2])])
+        indices.append(chain_indices)
     
-    #TODO Handle non-continuous protein sequence
+    ranges = []
+ 
+    for index_range in indices:
+        if len(index_range) == (index_range[-1] + 1 - index_range[0]):
+            ranges.append((index_range[0], index_range[-1]))
+        
+        else:
+            splits = []
+            for i, index in enumerate(index_range[:-1]):
+                if index_range[i+1] - index == 1:
+                    pass
+                else:
+                    splits.append(i+1)
+    
+    return ranges
+
 
 def translate(pdb, centre):
     

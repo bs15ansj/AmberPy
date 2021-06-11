@@ -5,38 +5,37 @@ Created on Thu Nov  5 11:12:13 2020
 
 @author: bs15ansj
 """
+
 import tempfile
 from subprocess import PIPE, Popen
 import os
 import shutil
+
 from amberpy.tools import get_max_distance
 from amberpy.utilities import get_name_from_input_list
 import amberpy.cosolvents as cosolvents_dir
 from amberpy.cosolvents import COSOLVENTS
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TleapInput:
     '''
     Tleap Input object
     '''
-    def __init__(
-            self,
-            protein_forcefield: str = "ff19SB",
-            water_forcefield: str = "tip3p",
-            solvate: bool = True,
-            shape: str = "box",
-            distance: float = 12.0,
-            distance_from_residues: tuple = None,
-            ions: dict = {
-                "Na+": 0,
-                "Cl-": 0
-            },
-            save_protein: bool = True,
-            ions_rand: bool = True,
-            box_size: float = None,
-            no_centre: bool = False,
-            frcmod_list=None,
-            mol2_dict=None
-    ):
+    def __init__(self, 
+                 protein_forcefield: str = "ff19SB", 
+                 water_forcefield: str = "tip3p",
+                 solvate: bool = True,
+                 shape: str = "box", distance: float = 12.0, 
+                 distance_from_residues: tuple = None, 
+                 ions: dict = {"Na+": 0, "Cl-": 0},
+                 save_protein: bool = True,
+                 ions_rand: bool = True,
+                 box_size: float = None,
+                 no_centre: bool = False,
+                 frcmod_list=None,
+                 mol2_dict=None):
         
         self.protein_forcefield = protein_forcefield
         self.water_forcefield = water_forcefield
@@ -78,12 +77,12 @@ class TleapInput:
             pdb_out=None
     ):
         
-
+        
         tleap_lines = f"source leaprc.protein.{self.protein_forcefield}\n"
 
         if self.solvate or self.box_size:
             tleap_lines += f"source leaprc.water.{self.water_forcefield}\n"
-            
+        
         if not self.frcmod_list is None:
             for frcmod in self.frcmod_list:
                 if not frcmod is None:
@@ -105,9 +104,14 @@ class TleapInput:
                 d1 = get_max_distance(pdb, residues=(start, stop))
                 d2 = get_max_distance(pdb)
                 distance -= (d2 - d1)/2
+            
+            logger.info(f'Solvating system with a water box {distance} '
+                        'Angstroms from residues.')
+                
             tleap_lines += f"solvate{self.shape} mol TIP3PBOX {distance} iso\n"
         
         if self.ions:
+            logger.info(f'Adding ions from dictionary: {self.ions}')
             for ion, count in self.ions.items():
                 if self.ions_rand:
                     tleap_lines += f"addionsrand mol {ion} {count}\n"
@@ -124,10 +128,12 @@ class TleapInput:
         if self.save_protein:
             tleap_lines += f"savepdb mol {pdb_out}\n"
         
-        tleap_lines += f"logfile {parm7_out.replace('parm7', 'tleap.log')}\n"
         tleap_lines += f"saveamberparm mol {parm7_out} {rst7_out}\nquit"
-        print(f'Running Tleap with input:\n{tleap_lines}\n')
         run_tleap(tleap_lines)
+        
+        logger.info(f"Saving tleap output to '{parm7_out}' and '{rst7_out}'")
+        logger.info(f"Tleap log file saved to 'leap.log'")
+        
 
 class PackmolInput:
     '''
@@ -188,12 +194,21 @@ class PackmolInput:
 
     def run(self, cosolvent_pdb, pdb_out, protein_pdb=None):
 
+        cosolvent = os.path.join(os.getcwd(), 
+                                     os.path.basename(cosolvent_pdb))
+        shutil.copy(cosolvent_pdb, cosolvent)
+
         packmol_lines = (f"tolerance {self.tolerance}\n"
                          "filetype pdb\n"
                          f"output {pdb_out}\n")
         
         # If a protein pdb file is provided, place the protein at the origin
         if not protein_pdb is None:
+            
+            logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
+                        f"'{cosolvent_pdb}') to protein ('{protein_pdb}')"
+                        " using Packmol.")
+            
             packmol_lines += (f"structure {protein_pdb}\n"
                               f"  seed 0\n"
                               "  number 1\n"
@@ -213,34 +228,40 @@ class PackmolInput:
                               "end structure\n")            
         # If no protein pdb file provided, just add cosolvent molecules
         else:
-            
-            water = os.path.join(os.getcwd(), 'water.pdb')
-            shutil.copy(os.path.join(cosolvents_dir.__path__[0], 'water.pdb'),
-                         water)
-
-            cosolvent = os.path.join(os.getcwd(), 
-                                         os.path.basename(cosolvent_pdb))
-            shutil.copy(cosolvent_pdb, cosolvent)
-
+        
             x, y, z = self.box_size
+            
             if self.n_waters is not None:
+                
+                logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
+                f"'{cosolvent_pdb}') and {self.n_waters} water molecules to "
+                f"a box with dimensions {x} {y} {z}.")
+                
+                water = os.path.join(os.getcwd(), 'water.pdb')
+                shutil.copy(os.path.join(cosolvents_dir.__path__[0], 
+                                         'water.pdb'), water)
+                
                 packmol_lines += (f'structure {water} \n'
                                   f'  number {self.n_waters} \n'
                                   f'  inside box 0. 0. 0. {x} {y} {z} \n'
                                   "   add_amber_ter\n"
                                   'end structure\n')
+            
+            else:
+                
+                logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
+                f"'{cosolvent_pdb}') to a box with dimensions {x} {y} {z}.")
                 
             packmol_lines += (f'structure {cosolvent}\n'
                            f'  number {self.n_cosolvents}\n'
                            f'  inside box 0. 0. 0. {x} {y} {z} \n'
                            "   add_amber_ter\n"
                            'end structure\n')
-        print(f'Running Packmol with the input:\n{packmol_lines}\n')
+
         run_packmol(packmol_lines)
         
-        
+        logger.info(f"Saving system as '{pdb_out}'")
 
-        
 class Setup:
     
     def __init__(self, name, protein_pdb=None, cosolvent=None, directory=os.getcwd()):
@@ -378,6 +399,9 @@ class Setup:
 
 def run_parmed(parm7, HMRparm7):
 
+    logger.info("Running parmed.")
+    logger.debug(f"Repartitioning the mass of hydrogens in '{parm7}' and "
+                 f"saving to '{HMRparm7}'")
 
     if os.path.exists(f"{HMRparm7}"):
         os.remove(f"{HMRparm7}")
@@ -391,7 +415,7 @@ def run_parmed(parm7, HMRparm7):
     )
     parmed_inp.close()
 
-    process = Popen(
+    p = Popen(
         ["parmed < {}".format(parmed_inp.name)],
         stdin=PIPE,
         stdout=PIPE,
@@ -399,13 +423,24 @@ def run_parmed(parm7, HMRparm7):
         universal_newlines=True,
         shell=True,
     )
-    out, err = process.communicate()
-
+    
+    out, err = p.communicate()
     os.remove(parmed_inp.name)
-    print(out, err)
+    
+    if p.returncode != 0:
+        out = out.replace('\n', '\n\t')
+        logger.error(f'Parmed failed, see output:\n\t{out}')
+        exit()
+        
+    else:
+        logger.info('Parmed completed succeffully.')
     return out
 
 def run_tleap(tleap_lines):
+
+    logger.info("Running tleap.")
+    log_lines = tleap_lines.replace('\n', '\n\t')
+    logger.debug(f"Tleap input lines:\n\t{log_lines}")
 
     tleap_inp = tempfile.NamedTemporaryFile(mode="w",
                                             delete=False,
@@ -422,14 +457,36 @@ def run_tleap(tleap_lines):
         universal_newlines=True,
         shell=True,
     )
+    
     out, err = p.communicate()
-    print(out, err)
     os.remove(tleap_inp.name)
+    
+    if p.returncode != 0:
+        
+        # Get error message from tleap
+        error = out[out.find("Fatal Error!")+13:]
+        error = error.replace('\n', '\n\t')
+        logger.error(f"Error raised by tleap:\n\t{error}")
+        exit()
+        
+    else:
+        
+        # Find any tleap warnings
+        warnings = int(out[out.find('Warnings = ')+11:out.find('; Notes = ')])
+        logger.info(f'Tleap completed successfully with {warnings} warnings.'
+                    ' Check the tleap logfile for more info.')
+            
+    
     
     return out
 
 
 def run_packmol(packmol_lines):
+    
+    logger.info("Running packmol.")
+    log_lines = packmol_lines.replace('\n', '\n\t')
+    logger.debug(f"Packmol input lines:\n\t{log_lines}")
+
     packmol_inp = tempfile.NamedTemporaryFile(mode="w",
                                               delete=False,
                                               prefix="packmol-",
@@ -448,6 +505,12 @@ def run_packmol(packmol_lines):
     
     out, err = p.communicate()
     
-    print(out, err)
+    if p.returncode != 0:
+        out = out.replace('\n', '\n\t')
+        logger.error(f'Packmol failed, see output:\n\t{out}')
+        exit()
+        
+    else:
+        logger.info('Packmol completed succeffully.')
     
     os.remove(packmol_inp.name)

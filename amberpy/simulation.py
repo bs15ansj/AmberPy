@@ -22,7 +22,10 @@ from amberpy.crossbow import crossbow
 from amberpy.utilities import get_name_from_file
 import os
 from typing import Union
+from amberpy import get_module_logger
+import logging
 
+logger = logging.getLogger(__name__)
 
 class MDInput:
     '''Base class for MD inputs.
@@ -297,9 +300,10 @@ class MDInput:
             # If positional restraints are turned on, add the ntr flag and 
             # write the restraint mask
             if self.posres:
-                a, b = self.posres
-                f.write('\tntr=1,\n')
-                f.write(f'/\nProtein posres\n1.0\nRES {a} {b}\nEND\nEND')
+                f.write('/\nProtein posres\n1.0\nRES ')
+                for a, b in self.posres:
+                    f.write(f'{a} {b} ')
+                f.write('\nEND\nEND')
             else:
                 f.write("/\nEND")
 
@@ -322,6 +326,9 @@ class MinimisationInput(MDInput):
         
         # No pressure control 
         kwargs['ntp'] = 0
+        
+        # Print energy more frequently
+        kwargs['ntpr'] = 100
         
         # Instantiate super class with key word arguments
         super().__init__(**kwargs)
@@ -509,6 +516,11 @@ class Simulation:
         
         # If no md_input provided, build one from the key word arguments
         if md_input is None:
+            
+            logger.info('Adding minimisation step: steepest_descent_steps='
+                        f'{steepest_descent_steps}, conjugate_gradient_steps='
+                        f'{conjugate_gradient_steps}, nb_cutoff={nb_cutoff} An'
+                        f"gstroms, restraints='{restraints}'")
             kwargs = {}
             kwargs['ncyc'] = steepest_descent_steps
             kwargs['maxcyc'] = steepest_descent_steps + conjugate_gradient_steps
@@ -530,14 +542,19 @@ class Simulation:
             
             # Add a MinimisationInput object to the simulation using the key 
             # word arguments
-            self.md_steps.append(MinimisationInput(**kwargs))
+            md_input = MinimisationInput(**kwargs)
+            self.md_steps.append(md_input)
         
         # If Minimisation object is provided just add that
         elif isinstance(md_input, MinimisationInput):
+            
             self.md_steps.append(md_input)
+            logger.info('Adding minimisation step from MinimisationInput')
             
         else:
             raise Exception('md_input must be an instance of the MinimisationInput class or None')
+
+        logger.debug(f'Minimisation flags: {md_input.arg_dict}')
 
     def add_equilibration_step(
             self,
@@ -577,6 +594,13 @@ class Simulation:
         
         # If no md_input provided, build one from the key word arguments
         if md_input is None:
+            
+            logger.info('Adding equilibration step: inintial_temperature='
+                        f'{initial_temperature}K, target_temperature='
+                        f'{target_temperature}K, nb_cutoff={nb_cutoff} Angstro'
+                        f'ms, simulation_time={simulation_time}ps, restraints='
+                        f"'{restraints}'")
+            
             kwargs = {}
             kwargs['tempi'] = initial_temperature
             kwargs['temp0'] = target_temperature
@@ -600,14 +624,18 @@ class Simulation:
                     
             # Add a EquilibrationInput object to the simulation using the key 
             # word arguments
-            self.md_steps.append(EquilibrationInput(**kwargs))
+            md_input = EquilibrationInput(**kwargs)
+            self.md_steps.append(md_input)
         
         # If Equilibration object is provided just add that
         elif isinstance(md_input, EquilibrationInput):
             self.md_steps.append(md_input)
+            logger.info('Adding equilibration step from EquilibrationInput')
             
         else:
             raise Exception('md_input must be an instance of the EquilibrationInput class or None')
+            
+        logger.debug(f'Equilibration flags: {md_input.arg_dict}')
             
     def add_production_step(
             self,
@@ -643,6 +671,11 @@ class Simulation:
         
         # If no md_input provided, build one from the key word arguments
         if md_input is None:
+            
+            logger.info('Adding production step: target_temperature='
+                        f'{target_temperature}K, nb_cutoff={nb_cutoff} Angstro'
+                        f'ms, simulation_time={simulation_time}ns')
+            
             kwargs = {}
             kwargs['dt'] = timestep
             kwargs['cut'] = nb_cutoff

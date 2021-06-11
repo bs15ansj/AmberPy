@@ -6,6 +6,10 @@ from amberpy.md_setup import Setup, TleapInput, PackmolInput
 from amberpy.simulation import Simulation
 from amberpy.tools import get_protein_termini
 from amberpy.utilities import get_name_from_input_list
+from amberpy import get_module_logger
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Experiment(Setup, Simulation):
     '''Base class for setting up and running an experiment. 
@@ -70,6 +74,8 @@ class Experiment(Setup, Simulation):
         # If no name given, generate the name from the input files
         if name is None:
             self.name = get_name_from_input_list(input_list)
+        else:
+            self.name = name
             
         self.replica_name = replica_name
         
