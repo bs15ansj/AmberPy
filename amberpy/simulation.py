@@ -305,7 +305,7 @@ class MDInput:
                     f.write(f'{a} {b} ')
                 f.write('\nEND\nEND')
             else:
-                f.write('/')
+                f.write('/\n')
 
 
 class MinimisationInput(MDInput):

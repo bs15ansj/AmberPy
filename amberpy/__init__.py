@@ -18,7 +18,7 @@ def get_module_logger(name, logfile):
 
     stream_handler.setFormatter(formatter)
     
-    file_handler = logging.FileHandler(logfile)
+    file_handler = logging.FileHandler(logfile,  mode='w')
     
     file_handler.setFormatter(formatter)
     

@@ -87,7 +87,7 @@ def crossbow(name,
     parameters['jobname'] = name
     parameters['upload-include'] = ', '.join([mdin, parm7, rst7, ref_rst7])
     parameters['upload-exclude'] = '*'
-    parameters['download-include'] = ', '.join([mdout, mdinfo, out_rst7, nc])
+    parameters['download-include'] = ', '.join([mdout, mdinfo, out_rst7, nc, name+'.o*', name+'.e*'])
     parameters['download-exclude'] = '*'
     parameters['localworkdir'] = localworkdir
     
