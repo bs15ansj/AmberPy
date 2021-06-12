@@ -38,7 +38,8 @@ def crossbow(name,
              hold_jid='',
              arc=3,
              localworkdir='',
-             minimisation=False):
+             minimisation=False,
+             pollingfrequency=60):
     
     # Get the output file names from the inputs
     mdout = mdin.replace('mdin', 'mdout')
@@ -90,6 +91,7 @@ def crossbow(name,
     parameters['download-include'] = ', '.join([mdout, mdinfo, out_rst7, nc, name+'.o*', name+'.e*'])
     parameters['download-exclude'] = '*'
     parameters['localworkdir'] = localworkdir
+    parameters['pollingfrequency'] = pollingfrequency
     
 
     
