@@ -226,7 +226,6 @@ class MDInput:
         self.posres: tuple = False          
         self.cut: float = 8.0        
         self.ntxo: int = 2
-        self.ntr = 1
         
         # If minimisation is turned on, enable minimisation specific attributes
         if kwargs['imin'] == 1:
@@ -300,12 +299,14 @@ class MDInput:
             # If positional restraints are turned on, add the ntr flag and 
             # write the restraint mask
             if self.posres:
+                f.write('\tntr=1,\n')
                 f.write('/\nProtein posres\n1.0\nRES ')
                 for a, b in self.posres:
                     f.write(f'{a} {b} ')
                 f.write('\nEND\nEND')
             else:
-                f.write("/\nEND")
+                f.write('/')
+
 
 class MinimisationInput(MDInput):
     '''Minimisation input class. 
