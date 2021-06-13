@@ -21,6 +21,7 @@ ProductionInput
 from amberpy.crossbow import crossbow
 from amberpy.utilities import get_name_from_file
 import os
+import copy
 from typing import Union
 from amberpy import get_module_logger
 import logging
@@ -719,67 +720,65 @@ class Simulation:
 
         '''
 
-        # Create an empty list that will hold the inputs for each step to pass
-        # to crossbow
-        crossbow_inputs = []
         
         # Longbow doesn't like absolute paths so get the basenames of the 
         # input files
         parm7 = os.path.basename(self.parm7)
         rst7 = os.path.basename(self.rst7)
         ref_rst7 = os.path.basename(self.ref_rst7)
-        
+
         # Iterate through md steps and get step number (i)        
-        for i, md_step in enumerate(self.md_steps):
-            i += 1
-            step_name = md_step.__str__()
-            
-            # File name will contain the step number (based on order in 
-            # md_steps) and the name of the input object. The prefix here is 
-            # used by longbow to automatically generate all of the output file
-            # names
-            fname = f'step-{i}-{step_name}.mdin'
-            
-            md_step.write(self.simulation_directory, fname)
-            
-            # Add the filename to the md_inputs list
-            self.md_inputs.append(fname)
-            
-            # Get the name for the job from the simulation name, step name, and 
-            # step number
-            step_type = md_step.__str__()
-            job_name = self.name + '.' + step_type[:3] + '.' + str(i)
-            self.md_job_names.append(job_name)
-            
-            # Get the positional arguments in a tuple. The positional arguments
-            # for crossbow are (name, user, mdin, parm7, rst7, ref_rst7)
-            args = (job_name, self.md_inputs[i-1], parm7, rst7, 
-                    ref_rst7)
-            
+        for step_number, md_step in enumerate(self.md_steps):
+            print(step_number, md_step, self.md_steps)
+
             # Create a key word argument dictionary for crossbow and add 
             # kwargs
             kwargs = {}
             kwargs['arc'] = arc
             kwargs['localworkdir'] = self.simulation_directory
             
-            if step_type == 'minimisation':
-                kwargs['minimisation'] = True
-                kwargs['cores'] = cores
-        
-            if i != 1:
-                kwargs['hold_jid'] = self.md_job_names[i-2]
+            step_number += 1
+            step_name = md_step.__str__()
             
-            # Add args and kwargs as tuple to list of crossbow inputs
-            crossbow_inputs.append((args, kwargs))
+            attempt_number = 0
             
-            # The rst7 variable is set to the rst7 file that comes out of this
-            # step, so that the next md step can use these coordinates as an 
-            # input 
-            rst7 = f'step-{i}-{step_name}.rst7'
-        
-        for args, kwargs in crossbow_inputs:
-            crossbow(*args, **kwargs)
+            while True:
+                
+                # File name will contain the step number (based on order in 
+                # md_steps) and the name of the input object. The prefix here is 
+                # used by longbow to automatically generate all of the output file
+                # names
+                fname = f'step-{step_number}.{attempt_number}-{step_name}.mdin'
 
+                md_step.write(self.simulation_directory, fname)
+
+                # Get the name for the job from the simulation name, step name, and 
+                # step number
+                step_type = md_step.__str__()
+                job_name = self.name + '.' + step_type[:3] + '.' + str(step_number) + '.' + str(attempt_number)
+                self.md_job_names.append(job_name)
+
+                # Get the positional arguments in a tuple. The positional arguments
+                # for crossbow are (name, user, mdin, parm7, rst7, ref_rst7)
+                args = (job_name, fname, parm7, rst7, ref_rst7)
+                
+                if step_type == 'minimisation':
+                    kwargs['minimisation'] = True
+                    kwargs['cores'] = cores
+
+                if step_number != 1:
+                    kwargs['hold_jid'] = self.md_job_names[step_number+attempt_number-2]
+
+                error_code = crossbow(*args, **kwargs)
+
+                if error_code == 0:
+                    rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
+                    break
+                elif error_code == 1:
+                    rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
+                    attempt_number += 1
+                    continue
+        
     def _restraints_from_arg(self, arg):
         
         '''Converts restraints from argument to posres MDInput argument. 
@@ -812,3 +811,5 @@ class Simulation:
             raise Exception(f'Restraint argument can either be "protein" or tuple, not {type(arg)}')
             
         return restraints
+
+    

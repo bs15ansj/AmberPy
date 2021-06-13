@@ -6,18 +6,9 @@ Created on Thu May 20 12:02:00 2021
 @author: bs15ansj
 """
 import os
+import glob
 from longbow.entrypoints import longbow
-import logging
 
-# Setup logger (must be done like this so that the longbow logger works)
-LOG = logging.getLogger("longbow")
-logformat = logging.Formatter('%(asctime)s - %(levelname)-8s - '
-                              '%(name)s - %(message)s',
-                              '%Y-%m-%d %H:%M:%S')
-LOG.setLevel(logging.DEBUG)
-handler = logging.StreamHandler()
-handler.setFormatter(logformat)
-LOG.addHandler(handler)
 
 # Setup parameter dictionary 
 parameters = {'disconnect': False, 
@@ -53,6 +44,21 @@ def crossbow(name,
         name = 'a'+name
         print(f"Arc job name can't start with digit, changing to {name}")
     
+
+    # Remove any job output/error files 
+    try:
+        for f in glob.glob(os.path.join(localworkdir, f'{name}.o*')):
+            os.remove(f)
+    except IndexError:
+        pass
+    try:
+        for f in glob.glob(os.path.join(localworkdir, f'{name}.e*')):
+            os.remove(f)
+    except IndexError:
+        pass   
+
+    
+        
     # Ensure that only gpu OR cores have been specified
     if gpu == True and cores is not None:
         gpu = False
@@ -91,11 +97,26 @@ def crossbow(name,
     parameters['download-include'] = ', '.join([mdout, mdinfo, out_rst7, nc, name+'.o*', name+'.e*'])
     parameters['download-exclude'] = '*'
     parameters['localworkdir'] = localworkdir
-    parameters['pollingfrequency'] = pollingfrequency
-    
-
+    parameters['polling-frequency'] = pollingfrequency
     
     # Run longbow with empty jobs list and parameters
     jobs = {}
     
     longbow(jobs, parameters)
+    
+    if not production_successful(name, localworkdir):
+        return 1
+    else:
+        return 0
+    
+def production_successful(name, localworkdir):
+
+    for fname in glob.glob(os.path.join(localworkdir, f'{name}.o*')):
+    
+        with open(fname, 'r') as f:
+            if 'Periodic box dimensions have changed' in f.read():
+                return False
+            else:
+                return True
+
+    

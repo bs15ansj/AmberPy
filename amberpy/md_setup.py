@@ -132,7 +132,7 @@ class TleapInput:
         run_tleap(tleap_lines)
         
         logger.info(f"Saving tleap output to '{parm7_out}' and '{rst7_out}'")
-        logger.info(f"Tleap log file saved to 'leap.log'")
+        logger.info("Tleap log file saved to 'leap.log'")
         
 
 class PackmolInput:
