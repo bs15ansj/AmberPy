@@ -76,8 +76,6 @@ class Experiment(Setup, Simulation):
             self.name = get_name_from_input_list(input_list)
         else:
             self.name = name
-            
-        self.replica_name = str(replica_name)
         
         # If not already made, create directory based on name/replica name
         dirname = self.name.replace('.','')
@@ -102,8 +100,10 @@ class Experiment(Setup, Simulation):
                 os.mkdir(self.directory)
                 
         if self.replica_name is not None:
-            self.name = self.name + '-' + self.replica_name
-    
+            self.name = self.name + '-' + str(self.replica_name)
+
+        get_module_logger(__name__, os.path.join(self.directory, self.name + '.log'))
+
         Setup.__init__(self, self.name, protein_pdb, cosolvent, self.directory)
         
         Simulation.__init__(self, self.name, self.parm7, self.rst7, self.directory)

@@ -645,7 +645,7 @@ class Simulation:
             target_temperature: float = 310.0,
             nb_cutoff: float = 9.0,
             simulation_time: float = 100.0,
-            md_input: EquilibrationInput = None
+            md_input: ProductionInput = None
             ):
         
         '''Adds a Production step to the simulation.
