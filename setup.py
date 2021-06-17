@@ -33,7 +33,8 @@ setup(
     install_requires=['biopython',
                       'scikit-learn',
                       'Longbow @ git+https://github.com/pacilab/Longbow.git@master',
-                      'pandas'
+                      'pandas',
+                      'multiprocessing-logging'
                       ],
     scripts=['amberpy/james']
 )
