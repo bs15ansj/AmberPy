@@ -27,12 +27,12 @@ def main():
     args = parser.parse_args()
 
     
-    protein_simulation = ProteinExperiment(args.pdb_file)
-    protein_simulation.make_system()
-    protein_simulation.add_minimisation_step()
-    protein_simulation.add_equilibration_step()
-    protein_simulation.add_production_step()
-    protein_simulation.run(arc=args.arc)
+    protein_experiment = ProteinExperiment(args.pdb_file)
+    protein_experiment.make_system()
+    protein_experiment.add_minimisation_step()
+    protein_experiment.add_equilibration_step()
+    protein_experiment.add_production_step()
+    protein_experiment.run(arc=args.arc)
 
 if __name__ == "__main__":
 
