@@ -1,33 +1,6 @@
 amberpy package
 ===============
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   amberpy.cosolvents
-
-Submodules
-----------
-
-amberpy.config module
----------------------
-
-.. automodule:: amberpy.config
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-amberpy.crossbow module
------------------------
-
-.. automodule:: amberpy.crossbow
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 amberpy.experiments module
 --------------------------
 
