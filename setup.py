@@ -7,6 +7,7 @@ Created on Thu May 27 21:36:58 2021
 """
 from setuptools import setup, find_packages
 import os
+import getpass
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -44,19 +45,19 @@ try:
     if not os.path.isdir(os.path.expanduser('~/.amberpy')):
         print('Making hidden AmberPy directory at "~/.amberpy"')
         os.mkdir(os.path.expanduser('~/.amberpy'))
-    
+
     else:
         print('Directory already exists at "~/.amberpy" - Skipping')
         
         
     if not os.path.isfile(os.path.expanduser('~/.amberpy/hosts.conf')):
         print('Making configuration file at "~/.amberpy/hosts.conf"')
-        username = os.getlogin()
-        remoteworkdir = '/nobackup/' + os.getlogin()
+        username = getpass.getuser()
+        remoteworkdir = '/nobackup/' + username
         
         HOSTFILE = open(os.path.expanduser('~/.amberpy/hosts.conf'), 'w+')
-    
-    
+
+
 
         HOSTFILE.write(
                     "[arc3-gpu]\n"
