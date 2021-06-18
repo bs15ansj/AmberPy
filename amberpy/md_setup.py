@@ -259,6 +259,16 @@ class PackmolInput:
                            'end structure\n')
 
         run_packmol(packmol_lines)
+
+        try:
+            os.remove(water)
+        except:
+            pass
+
+        try:
+            os.remove(cosolvent)
+        except:
+            pass
         
         logger.info(f"Saving system as '{pdb_out}'")
 
