@@ -14,7 +14,7 @@ Alternatively, AmberPy can be used as a python library to perform simulations us
 
 .. code-block:: python
 
-   from amberpy.experiments import ProteinSimulation
+   from amberpy.experiments import ProteinExperiment
    p = ProteinSimulation([pdb_file])
    p.make_system()
    p.add_minimisation_step()
