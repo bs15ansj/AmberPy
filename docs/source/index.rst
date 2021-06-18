@@ -30,6 +30,7 @@ This tool is intended to be used by students and staff at the University of Leed
 
    getting_started
    experiment
+   setup
 
 Indices and tables
 ==================
