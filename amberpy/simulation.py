@@ -142,7 +142,7 @@ class MDInput:
     ntwx : int, default=25000
         Write coordinates to trajectory every 'ntwx' steps.
         
-    ntwr : int, default=10000
+    ntwr : int, default=1000
         Write coordinates to a restart file every 'ntwr' steps.
         
     ntwv : int, default=0
@@ -250,7 +250,7 @@ class MDInput:
             self.ntc: int = 2
             self.ntf: int = 2
             self.ntwx: int = 25000
-            self.ntwr: int = 10000
+            self.ntwr: int = 1000
             self.ntwv: int = 0
             self.ntwf: int = 0
             self.ioutfm: int = 1
