@@ -37,7 +37,9 @@ setup(
                       'pandas',
                       'multiprocessing-logging'
                       ],
-    scripts=['amberpy/james']
+    scripts=['amberpy/james'],
+    include_package_data=True,
+    package_data={'': ['cosolvents/*']},
 )
 
 try:

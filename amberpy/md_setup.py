@@ -194,9 +194,14 @@ class PackmolInput:
 
     def run(self, cosolvent_pdb, pdb_out, protein_pdb=None):
 
-        cosolvent = os.path.join(os.getcwd(), 
-                                     os.path.basename(cosolvent_pdb))
-        shutil.copy(cosolvent_pdb, cosolvent)
+        # Annoyling, packmol won't work if the path to the input files go over
+        # the allowed number of columns. To minimise the change of this 
+        # the file paths being to long, copy the input files to the ouput 
+        # directory and pull them from there.
+        out_dir = os.path.dirname(pdb_out)
+
+        tmp_cosolvent = os.path.join(out_dir, os.path.basename(cosolvent_pdb))
+        shutil.copy(cosolvent_pdb, tmp_cosolvent)
 
         packmol_lines = (f"tolerance {self.tolerance}\n"
                          "filetype pdb\n"
@@ -206,7 +211,7 @@ class PackmolInput:
         if not protein_pdb is None:
             
             logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
-                        f"'{cosolvent_pdb}') to protein ('{protein_pdb}')"
+                        f"'{os.path.basename(cosolvent_pdb)}') to protein ('{protein_pdb}')"
                         " using Packmol.")
             
             packmol_lines += (f"structure {protein_pdb}\n"
@@ -219,7 +224,7 @@ class PackmolInput:
             
             sphere_size = (get_max_distance(protein_pdb)/2) + 9
             
-            packmol_lines += (f"structure {cosolvent_pdb}\n"
+            packmol_lines += (f"structure {tmp_cosolvent}\n"
                               f"  seed {self.seed}\n"
                               f"  number {self.n_cosolvents}\n"
                               f"  inside sphere 0. 0. 0. {sphere_size}\n"
@@ -234,14 +239,14 @@ class PackmolInput:
             if self.n_waters is not None:
                 
                 logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
-                f"'{cosolvent_pdb}') and {self.n_waters} water molecules to "
+                f"'{os.path.basename(cosolvent_pdb)}') and {self.n_waters} water molecules to "
                 f"a box with dimensions {x} {y} {z}.")
                 
-                water = os.path.join(os.getcwd(), 'water.pdb')
+                tmp_water = os.path.join(out_dir, 'water.pdb')
                 shutil.copy(os.path.join(cosolvents_dir.__path__[0], 
-                                         'water.pdb'), water)
+                                         'water.pdb'), tmp_water)
                 
-                packmol_lines += (f'structure {water} \n'
+                packmol_lines += (f'structure {tmp_water} \n'
                                   f'  number {self.n_waters} \n'
                                   f'  inside box 0. 0. 0. {x} {y} {z} \n'
                                   "   add_amber_ter\n"
@@ -250,9 +255,9 @@ class PackmolInput:
             else:
                 
                 logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
-                f"'{cosolvent_pdb}') to a box with dimensions {x} {y} {z}.")
+                f"'{os.path.basename(cosolvent_pdb)}') to a box with dimensions {x} {y} {z}.")
                 
-            packmol_lines += (f'structure {cosolvent}\n'
+            packmol_lines += (f'structure {tmp_cosolvent}\n'
                            f'  number {self.n_cosolvents}\n'
                            f'  inside box 0. 0. 0. {x} {y} {z} \n'
                            "   add_amber_ter\n"
@@ -260,17 +265,16 @@ class PackmolInput:
 
         run_packmol(packmol_lines)
 
-        '''
         try:
-            os.remove(water)
+            os.remove(tmp_water)
         except:
             pass
 
         try:
-            os.remove(cosolvent)
+            os.remove(tmp_cosolvent)
         except:
             pass
-        '''
+
         logger.info(f"Saving system as '{pdb_out}'")
 
 class Setup:

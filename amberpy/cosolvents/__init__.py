@@ -51,4 +51,6 @@ if len(available_cosolvents.keys()) != len(set(available_cosolvents.keys())):
     raise Exception('Duplicate cosolvents in directory')
 
 # Define available cosolvents
+global COSOLVENTS
+
 COSOLVENTS = available_cosolvents
