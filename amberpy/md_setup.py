@@ -472,7 +472,7 @@ def run_tleap(tleap_lines):
     out, err = p.communicate()
     os.remove(tleap_inp.name)
     
-    if 'Error' in out:
+    if 'Fatal Error' in out:
         
         # Get error message from tleap
         error = out[out.find("Fatal Error!")+13:]
