@@ -260,6 +260,7 @@ class PackmolInput:
 
         run_packmol(packmol_lines)
 
+        '''
         try:
             os.remove(water)
         except:
@@ -269,7 +270,7 @@ class PackmolInput:
             os.remove(cosolvent)
         except:
             pass
-        
+        '''
         logger.info(f"Saving system as '{pdb_out}'")
 
 class Setup:
@@ -437,7 +438,7 @@ def run_parmed(parm7, HMRparm7):
     out, err = p.communicate()
     os.remove(parmed_inp.name)
     
-    if p.returncode != 0:
+    if 'ERROR' in out:
         out = out.replace('\n', '\n\t')
         logger.error(f'Parmed failed, see output:\n\t{out}')
         exit()
@@ -515,7 +516,7 @@ def run_packmol(packmol_lines):
     
     out, err = p.communicate()
     
-    if p.returncode != 0:
+    if 'ERROR' in out:
         out = out.replace('\n', '\n\t')
         logger.error(f'Packmol failed, see output:\n\t{out}')
         exit()
