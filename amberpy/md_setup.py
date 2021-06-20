@@ -483,7 +483,10 @@ def run_tleap(tleap_lines):
     else:
         
         # Find any tleap warnings
-        warnings = int(out[out.find('Warnings = ')+11:out.find('; Notes = ')])
+        try:
+            warnings = int(out[out.find('Warnings = ')+11:out.find('; Notes = ')])
+        except:
+            warnings = 0
         logger.info(f'Tleap completed successfully with {warnings} warnings.'
                     ' Check the tleap logfile for more info.')
             
