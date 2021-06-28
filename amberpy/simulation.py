@@ -250,7 +250,7 @@ class MDInput:
             self.ntc: int = 2
             self.ntf: int = 2
             self.ntwx: int = 25000
-            self.ntwr: int = 10000
+            self.ntwr: int = 1000
             self.ntwv: int = 0
             self.ntwf: int = 0
             self.ioutfm: int = 1
@@ -778,6 +778,8 @@ class Simulation:
                     rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
                     attempt_number += 1
                     continue
+                elif error_code == 2:
+                    self.run(arc, cores)
         
     def _restraints_from_arg(self, arg):
         
