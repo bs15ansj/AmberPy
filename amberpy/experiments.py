@@ -76,6 +76,8 @@ class Experiment(Setup, Simulation):
             self.name = get_name_from_input_list(input_list)
         else:
             self.name = name
+
+        self.replica_name = replica_name
         
         # If not already made, create directory based on name/replica name
         dirname = self.name.replace('.','')

@@ -4,7 +4,7 @@ Getting Started
 Creating a new environment and installing AmberTools
 ----------------------------------------------------
 
-AmberPy currently depends on the Longbow package, which can only be run on python versions 2.7, 3.5, 3.6, and 3.7. We therefore recommend using python 3.7 to run longbow. 
+AmberPy currently depends on the Longbow package, which can only be run on python versions 2.7, 3.5, 3.6, and 3.7. We therefore recommend using python 3.7. 
 
 The easiest (and safest) way to prepare for your AmberPy installation is to create a new environment using Anaconda. If you haven’t already installed Anaconda you can download the installer here https://www.anaconda.com/. Once Anaconda is installed create a new Anaconda environment with:
 
@@ -74,6 +74,7 @@ or
    username@machine:~$ ssh [username]@arc4 
 
 When you try to log into arc3 or arc4 with the commands above, you will be asked to enter your password. You can configure your login such that you don’t have to enter a password each time. First generate an ssh key with:
+
 .. code-block:: console
 
    username@machine:~$ ssh-keygen
@@ -113,11 +114,11 @@ and type:
 
 .. code-block:: console
     
-   (amberpy) username@machine:~/AmberPy$ pip install .
+   (amberpy) username@machine:~/AmberPy$ pip install -e .
 
 You will now have access to AmberPy anywhere on your computer (you don't need to be in the AmberPy directory to use it).
 
-Finally, you may need to edit the configuration file that is created during installation at ``~/.amberpy/hosts.conf``. This file provides Longbow with the inputs needed to run on Arc. The only variables that you may need to change are ``user`` and/or ``remoteworkdir``. By default, these will be set to your username on the computer that you are using, and a directory with that username on nobackup. If your username/directory are different to this, then edit these variables. 
+Finally, you may need to edit the configuration file that is created during installation at ``~/.amberpy/hosts.conf``. This file provides Longbow with the inputs needed to run on Arc. The only variables that you may need to change are ``user`` and/or ``remoteworkdir``. By default, these will be set to your username on the computer that you are using, and a directory with that username on ``/nobackup``. If your username/directory are different to this, then edit these variables. 
 
 Using AmberPy
 -------------
@@ -164,23 +165,23 @@ You can make a simple python script to set up and run simulations by first impor
 
    from amberpy.experiments import ProteinExperiment
 
-There are three types of experiments that are currently available in AmberPy out of the box: ``ProteinSimulation``, ``CosolventSimulation``, and ``ProteinCosolventSimulation`` (the nature of each being self explanatory).
+There are three types of experiments that are currently available in AmberPy out of the box: ``ProteinExperiment``, ``CosolventExperiment``, and ``ProteinCosolventExperiment`` (the nature of each being self explanatory).
 
 Then, you would initialise an object of the experiment e.g.:
 
 .. code-block:: python
 
-   experiment = ProteinSimulation([pdb_file])
+   experiment = ProteinExperiment([pdb_file])
 
-The required arguments for each experiment depend on which one you are using. A ``ProteiSimulation`` requires a pdb file, a ``CosolventSimulation`` requires the name of a cosolvent (see supported cosolvents), and a ``ProteinCosolventSimulation`` requires both a pdb file and the name of a cosolvent. 
+The required arguments for each experiment depend on which one you are using. A ``ProteinExperiment`` requires a pdb file, a ``CosolventExperiment`` requires the name of a cosolvent (see supported cosolvents), and a ``ProteinCosolventExperiment`` requires both a pdb file and the name of a cosolvent. 
 
 You can also (optionally) specify the name of the experiment and/or a replica name (if you're creating multiple copies of an experiment and want the files and directories to be separated):
 
 .. code-block:: python
 
-   experiment = ProteinSimulation([pdb_file], name='my_experiment', replica_name='1')
+   experiment = ProteinExperiment([pdb_file], name='my_experiment', replica_name='1')
 
-Next, you will call the ``make_system`` method on your experiment to create the files needed for the simulation. For a ProteinSimulation, this will create a water box around the protein, add ions to the box, and generate paramater/topology and coordinate files that can be read by the simulation software. If you call the ``make_system`` method without any arguments, AmberPy will just use the defaults:
+Next, you will call the ``make_system`` method on your experiment to create the files needed for the simulation. For a ProteinExperiment, this will create a water box around the protein, add ions to the box, and generate paramater/topology and coordinate files that can be read by the simulation software. If you call the ``make_system`` method without any arguments, AmberPy will just use the defaults:
 
 .. code-block:: python
 
@@ -260,13 +261,10 @@ These inputs provide a wider range of arguments than those provided in the exper
 
    tleap_input = TleapInput(frcmod_list=['frcmod.ligand'], mol2_dict={'LIG', 'ligand.mol2'})
 
-   experiment = ProteinSimulation('protein_and_ligand.pdb')
+   experiment = ProteinExperiment('protein_and_ligand.pdb')
    experiment.make_system(tleap_input=tleap_input)
 
 If you want to see a full description of all of the input classes and what arguments they can take, please see the API reference.
-
-Level 4
-*******
 
 
 

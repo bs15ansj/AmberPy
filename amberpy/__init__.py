@@ -5,6 +5,8 @@ import logging
 import multiprocessing_logging
 multiprocessing_logging.install_mp_handler()
 
+logging_level = logging.INFO
+
 def get_module_logger(name, logfile):
     
     logger = logging.getLogger()
@@ -26,6 +28,10 @@ def get_module_logger(name, logfile):
     
     logger.addHandler(file_handler)
     
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging_level)
     
     return logger
+
+def set_logging_level(level):
+    global logging_level
+    logging_level = level
