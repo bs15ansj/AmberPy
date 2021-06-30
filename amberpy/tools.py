@@ -6,12 +6,14 @@ Created on Mon Mar  8 18:04:32 2021
 @author: bs15ansj
 """
 import numpy as np
+import math
 import os
 from Bio.PDB import *
 from sklearn.metrics.pairwise import euclidean_distances
 import warnings
 import os
-
+from parmed.tools import netCharge
+from parmed.amber import AmberParm
 
 warnings.simplefilter('ignore')    
 
@@ -134,10 +136,32 @@ def get_max_distance(pdb, residues=None):
     coords = np.array([atom.get_coord() for atom in atoms])
     return np.max(euclidean_distances(coords,coords))
 
+def get_charge(parm):
+    
+    parm = AmberParm(parm)
+    action = netCharge(parm)
+    charge = action.execute()
+    if charge > 0:
+        return math.floor(charge)
+    elif charge < 0:
+        return math.ceil(charge)
+    else:
+        return 0
+    
+def strip(pdb, stripped_pdb, residues=['WAT']):
+    '''
+    Strips water molecules from PDB.
+    '''
+    lines = open(pdb, 'r').readlines()
+    
+    with open(stripped_pdb, 'w+') as f:
+        for line in lines:
+            if not [res for res in residues if(res in line)]:
+                f.write(line)
+      
+    
 
-
-
-
+    
 
 
 

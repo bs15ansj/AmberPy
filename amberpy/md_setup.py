@@ -31,11 +31,12 @@ class TleapInput:
                  distance_from_residues: tuple = None, 
                  ions: dict = {"Na+": 0, "Cl-": 0},
                  save_protein: bool = True,
-                 ions_rand: bool = True,
+                 ions_rand: bool = False,
                  box_size: float = None,
                  no_centre: bool = False,
                  frcmod_list=None,
-                 mol2_dict=None):
+                 mol2_dict=None,
+                 iso=True):
         
         self.protein_forcefield = protein_forcefield
         self.water_forcefield = water_forcefield
@@ -48,6 +49,7 @@ class TleapInput:
         self.ions_rand = ions_rand
         self.frcmod_list = frcmod_list
         self.mol2_dict = mol2_dict
+        self.iso = iso
         
         if box_size is not None:
             if type(box_size) is int:
@@ -107,16 +109,19 @@ class TleapInput:
             
             logger.info(f'Solvating system with a water box {distance} '
                         'Angstroms from residues.')
-                
-            tleap_lines += f"solvate{self.shape} mol TIP3PBOX {distance} iso\n"
+            
+            if self.iso:
+                tleap_lines += f"solvate{self.shape} mol TIP3PBOX {distance} iso\n"
+            else:
+                tleap_lines += f"solvate{self.shape} mol TIP3PBOX {distance}\n"
         
-        if self.ions:
-            logger.info(f'Adding ions from dictionary: {self.ions}')
-            for ion, count in self.ions.items():
-                if self.ions_rand:
-                    tleap_lines += f"addionsrand mol {ion} {count}\n"
-                else:
-                    tleap_lines += f"addions mol {ion} {count}\n"
+            if self.ions:
+                logger.info(f'Adding ions from dictionary: {self.ions}')
+                for ion, count in self.ions.items():
+                    if self.ions_rand:
+                        tleap_lines += f"addionsrand mol {ion} {count}\n"
+                    else:
+                        tleap_lines += f"addions mol {ion} {count}\n"
         
         if self.box_size:
             x, y, z = self.box_size
@@ -146,6 +151,7 @@ class PackmolInput:
             seed: int = -1,
             distance: float = 9.0,
             box_size: float = 100.0,
+            outside_sphere: float = None,
             tolerance: float = 2.0,
     ):
         '''
@@ -174,6 +180,7 @@ class PackmolInput:
         self.n_waters = n_waters
         self.seed = seed
         self.distance = distance
+        self.outside_sphere = outside_sphere
         
         if type(box_size) is int:
             box_size = float(box_size)
@@ -189,6 +196,24 @@ class PackmolInput:
         else:
             raise Exception('Please provide either 1 number or list of 3'+
                             ' numbers for box size')            
+        
+        if outside_sphere is not None:
+            if type(outside_sphere) is int:
+                outside_sphere = float(outside_sphere)
+                
+            if type(outside_sphere) is float:    
+                self.outside_sphere = [outside_sphere, outside_sphere, outside_sphere]
+            elif type(outside_sphere) is list:
+                if len(outside_sphere) != 3:
+                    raise Exception('Please provide either 1 number or list of 3'+
+                                    ' numbers for outside_sphere')
+                else:
+                    self.outside_sphere = [float(x) for x in outside_sphere]
+            else:
+                raise Exception('Please provide either 1 number or list of 3'+
+                                ' numbers for outside_sphere')
+        else:
+            self.outside_sphere = None
         
         self.tolerance = tolerance
 
@@ -216,52 +241,50 @@ class PackmolInput:
             
             packmol_lines += (f"structure {protein_pdb}\n"
                               f"  seed 0\n"
-                              "  number 1\n"
-                              "  center\n"
-                              "  fixed 0. 0. 0. 0. 0. 0.\n"
-                              "  add_amber_ter\n"
-                              "end structure\n")
-            
-            sphere_size = (get_max_distance(protein_pdb)/2) + 9
-            
-            packmol_lines += (f"structure {tmp_cosolvent}\n"
-                              f"  seed {self.seed}\n"
-                              f"  number {self.n_cosolvents}\n"
-                              f"  inside sphere 0. 0. 0. {sphere_size}\n"
-                              "   resnumbers 2\n"
+                              "   number 1\n"
+                              "   center\n"
+                              "   fixed 0. 0. 0. 0. 0. 0.\n"
                               "   add_amber_ter\n"
-                              "end structure\n")            
-        # If no protein pdb file provided, just add cosolvent molecules
-        else:
-        
+                              "end structure\n")
+
+            
+        if self.n_waters is not None:
+            
+            logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
+            f"'{os.path.basename(cosolvent_pdb)}') and {self.n_waters} water molecules to "
+            f"a box with dimensions {self.box_size}.")
+            
+            tmp_water = os.path.join(out_dir, 'water.pdb')
+            shutil.copy(os.path.join(cosolvents_dir.__path__[0], 
+                                     'water.pdb'), tmp_water)
+            
+            packmol_lines += (f'structure {tmp_water} \n'
+                              f'   number {self.n_waters} \n')
             x, y, z = self.box_size
+            packmol_lines += f'   inside box {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)}\n'
             
-            if self.n_waters is not None:
-                
-                logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
-                f"'{os.path.basename(cosolvent_pdb)}') and {self.n_waters} water molecules to "
-                f"a box with dimensions {x} {y} {z}.")
-                
-                tmp_water = os.path.join(out_dir, 'water.pdb')
-                shutil.copy(os.path.join(cosolvents_dir.__path__[0], 
-                                         'water.pdb'), tmp_water)
-                
-                packmol_lines += (f'structure {tmp_water} \n'
-                                  f'  number {self.n_waters} \n'
-                                  f'  inside box 0. 0. 0. {x} {y} {z} \n'
-                                  "   add_amber_ter\n"
-                                  'end structure\n')
+            if self.outside_sphere:
+                x, y, z = self.outside_sphere
+                packmol_lines += f'   outside sphere 0. 0. 0. {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)} \n'
             
-            else:
-                
-                logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
-                f"'{os.path.basename(cosolvent_pdb)}') to a box with dimensions {x} {y} {z}.")
-                
-            packmol_lines += (f'structure {tmp_cosolvent}\n'
-                           f'  number {self.n_cosolvents}\n'
-                           f'  inside box 0. 0. 0. {x} {y} {z} \n'
-                           "   add_amber_ter\n"
-                           'end structure\n')
+            packmol_lines += '   add_amber_ter\nend structure\n'
+        
+        else:
+            
+            logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
+            f"'{os.path.basename(cosolvent_pdb)}') to a box with dimensions {self.box_size}.")
+        
+        x, y, z = self.box_size
+        
+        packmol_lines += (f'structure {tmp_cosolvent}\n'
+                       f'   number {self.n_cosolvents}\n')
+        packmol_lines += f'   inside box {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)}\n'
+
+        if self.outside_sphere:
+            x, y, z = self.outside_sphere
+            packmol_lines += f'   outside sphere 0. 0. 0. {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)} \n'    
+            
+        packmol_lines += '   add_amber_ter\nend structure\n'
 
         run_packmol(packmol_lines)
 
