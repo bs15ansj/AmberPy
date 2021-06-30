@@ -104,19 +104,32 @@ def crossbow(name,
     
     longbow(jobs, parameters)
     
-    if not production_successful(name, localworkdir):
+    if box_change_error(name, localworkdir):
         return 1
+    elif not cuda_error:
+        return 2
     else:
         return 0
     
-def production_successful(name, localworkdir):
+def box_change_error(name, localworkdir):
 
     for fname in glob.glob(os.path.join(localworkdir, f'{name}.o*')):
     
         with open(fname, 'r') as f:
             if 'Periodic box dimensions have changed' in f.read():
-                return False
-            else:
                 return True
+            else:
+                return False
 
+def cuda_error(name, localworkdir):
+
+    for fname in glob.glob(os.path.join(localworkdir, f'{name}.o*')):
+    
+        with open(fname, 'r') as f:
+            if 'cudaGetDeviceCount failed no CUDA-capable device is detected' in f.read():
+                return True
+            else:
+                pass
+        
+    return False
     

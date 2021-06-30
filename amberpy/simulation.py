@@ -14,8 +14,6 @@ MDInputs
 ProductionInput
     Dataclass object storing paramaters for a production simulation in the NPT
     ensemble.
-    
-
 
 """
 from amberpy.crossbow import crossbow
@@ -777,6 +775,8 @@ class Simulation:
                     rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
                     attempt_number += 1
                     continue
+                elif error_code == 2:
+                    self.run(arc, cores)
         
     def _restraints_from_arg(self, arg):
         
@@ -803,7 +803,7 @@ class Simulation:
                 restraints = None
         elif type(arg) is tuple:
             if len(arg) == 2:
-                restraints = arg
+                restraints = [arg]
             else:
                 raise Exception(f'Protein restraint tuple must be length 2, not {len(arg)}')
         else:
