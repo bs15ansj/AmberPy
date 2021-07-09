@@ -481,6 +481,7 @@ class Simulation:
         self.md_steps = []
         self.md_inputs = []
         self.md_job_names = []
+        self.trajectories = []
     
     def add_minimisation_step(
             self, 
@@ -762,9 +763,13 @@ class Simulation:
                 if step_type == 'minimisation':
                     kwargs['minimisation'] = True
                     kwargs['cores'] = cores
+                else:
+                    self.trajectories.append(os.path.join(self.simulation_directory, fname.replace('mdin', 'nc')))
 
                 if step_number != 1:
                     kwargs['hold_jid'] = self.md_job_names[step_number+attempt_number-2]
+
+                
 
                 error_code = crossbow(*args, **kwargs)
 
