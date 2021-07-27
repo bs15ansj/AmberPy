@@ -153,6 +153,7 @@ class PackmolInput:
             box_size: float = 100.0,
             outside_sphere: float = None,
             tolerance: float = 2.0,
+            ions: dict = None,
     ):
         '''
         
@@ -181,6 +182,7 @@ class PackmolInput:
         self.seed = seed
         self.distance = distance
         self.outside_sphere = outside_sphere
+        self.ions = ions
         
         if type(box_size) is int:
             box_size = float(box_size)
@@ -273,7 +275,20 @@ class PackmolInput:
             
             logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
             f"'{os.path.basename(cosolvent_pdb)}') to a box with dimensions {self.box_size}.")
+            
         
+        # Add ions
+        if self.ions:
+            for ion, n_ions in self.ions.items():
+                tmp_ion = os.path.join(out_dir, 'water.pdb')
+                shutil.copy(os.path.join(cosolvents_dir.__path__[0], 
+                                         'water.pdb'), tmp_ion)                
+                packmol_lines += (f'structure {tmp_ion} \n'
+                                  f'   number {n_ions} \n')                
+                x, y, z = self.box_size
+                packmol_lines += f'   inside box {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)}\n'
+                packmol_lines += '   add_amber_ter\nend structure\n'
+                
         x, y, z = self.box_size
         
         packmol_lines += (f'structure {tmp_cosolvent}\n'
@@ -290,6 +305,11 @@ class PackmolInput:
 
         try:
             os.remove(tmp_water)
+        except:
+            pass
+
+        try:
+            os.remove(tmp_ion)
         except:
             pass
 
@@ -332,6 +352,7 @@ class Setup:
                     n_waters = None, 
                     n_cosolvents = 100, 
                     box_size = [50,50,50],
+                    ions = None,
                     packmol_input = None):
         
         if packmol_input is None:
@@ -344,6 +365,7 @@ class Setup:
             kwargs['box_size'] = box_size
             kwargs['n_waters'] = n_waters
             kwargs['n_cosolvents'] = n_cosolvents
+            kwargs['ions'] = ions
             
             packmol = PackmolInput(**kwargs)
             
