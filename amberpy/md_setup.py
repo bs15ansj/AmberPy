@@ -17,6 +17,7 @@ import amberpy.cosolvents as cosolvents_dir
 from amberpy.cosolvents import COSOLVENTS
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 class TleapInput:
@@ -139,34 +140,21 @@ class TleapInput:
         logger.info(f"Saving tleap output to '{parm7_out}' and '{rst7_out}'")
         logger.info("Tleap log file saved to 'leap.log'")
         
-
 class PackmolInput:
     '''
     Packmol Input object
     '''
     def __init__(
             self,
-            n_cosolvents: int = 100,
-            n_waters: int = None,
-            seed: int = -1,
-            distance: float = 9.0,
             box_size: float = 100.0,
-            outside_sphere: float = None,
             tolerance: float = 2.0,
-    ):
+        ):
         '''
         
         Parameters
         ----------
-        n_cosolvents : int, optional
-            Number of cosolvent molecules to add. The default is 100.
-        n_waters : int, optional
-            Number of water molecules to add. The default is None.
         seed : int, optional
             Random seed for adding cosolvent molecules. The default is -1.
-        sphere_size : float, optional
-            Maximum distance from protein to add cosolvents
-            (only if protein present). The default is 9.0.
         box_size : float, optional
             Size of box to which cosolvents should be added
             (only if protein is not present). The default is 100.0.
@@ -176,11 +164,119 @@ class PackmolInput:
 
         '''
         
-        self.n_cosolvents = n_cosolvents
-        self.n_waters = n_waters
-        self.seed = seed
-        self.distance = distance
-        self.outside_sphere = outside_sphere
+        # Set attributes
+        self._check_valid_box_size(box_size)        
+        self.tolerance = tolerance
+        self.packmol_lines = ''
+
+        # Annoyling, packmol won't work if the path to the input files go over
+        # the allowed number of columns. To minimise the chance of 
+        # the file paths being to long, each input pdb file (apart from the 
+        # protein is added to a list of pdb files so that the run method
+        # can copy the files to the current directory whilst running, then 
+        # delete them afterwards.
+        self.remove_files = []
+        self.water_pdb = os.path.join(cosolvents_dir.__path__[0], 
+                                           'water.pdb')
+                                        
+        
+    def add_protein(self, protein_pdb, seed=0):
+        
+        '''
+        Adds add a protein to the centre of the box. 
+        '''
+
+        self.packmol_lines += (f"structure {protein_pdb}\n"
+                               f"   seed {seed}\n"
+                                "   number 1\n"
+                                "   center\n"
+                                "   fixed 0. 0. 0. 0. 0. 0.\n"
+                                "   add_amber_ter\n"
+                                "end structure\n")
+
+    def add_cosolvent(self, cosolvent, n_cosolvents, outside_sphere=None):
+
+        '''
+        Adds cosolvents to the box. 
+        ''' 
+
+        cosolvent_pdb = self._get_cosolvent_pdb(cosolvent)
+        self._copy_and_queue_removal(cosolvent_pdb, f"{cosolvent}.pdb")
+
+        x, y, z = self.box_size
+
+        self.packmol_lines += (f"structure {cosolvent}.pdb\n"
+                                "   resnumbers 2\n"
+                               f"   number {n_cosolvents}\n"
+                               f"   inside box {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)}\n"
+                                "   add_amber_ter\n"
+                                "end structure\n")
+
+    def add_waters(self, n_waters):
+
+        '''
+        Adds waters to the box.
+        '''
+
+        self._copy_and_queue_removal(self.water_pdb, "water.pdb")
+
+        x, y, z = self.box_size
+        
+        self.packmol_lines += (f"structure water.pdb\n"
+                                "   resnumbers 2\n"
+                               f"   number {n_waters}\n"
+                               f"   inside box {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)}\n"
+                                "   add_amber_ter\n"
+                                "end structure\n")    
+
+    def add_ions(self, ions):
+
+        '''
+        Adds ions to the box.
+        '''
+
+        x, y, z = self.box_size
+
+        if type(ions) is dict:
+            for ion, n_ions in ions.items():
+                if type(n_ions) is int:
+
+                    ion_pdb = self._get_ion_pdb(ion)
+                    self._copy_and_queue_removal(ion_pdb, f'{ion}.pdb')
+
+                    self.packmol_lines += (f"structure {ion}.pdb\n"
+                                            "   resnumbers 2\n"
+                                           f"   number {n_ions}\n"
+                                           f"   inside box {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)}\n"
+                                            "   add_amber_ter\n"
+                                            "end structure\n") 
+
+                else:
+                    raise Exception('Number of ions must be an integer.')
+
+        else:
+            raise Exception('Ions must be a dictionary containing ion names as ' +
+                            'keys and number of ions as values.')
+
+    def run(self, pdb_out):
+
+        self.packmol_lines = (f"tolerance {self.tolerance}\n"
+                               "filetype pdb\n"
+                              f"output {pdb_out}\n") + self.packmol_lines
+
+        run_packmol(self.packmol_lines)
+
+        logger.info(f"Saving system as '{pdb_out}'")
+        
+        for f in self.remove_files:
+            os.remove(f)
+
+    def _check_valid_box_size(self, box_size):
+        
+        '''
+        Function to check box size argument is valid. If it is, it is set as
+        the box_size attribute.
+        '''
         
         if type(box_size) is int:
             box_size = float(box_size)
@@ -195,132 +291,88 @@ class PackmolInput:
                 self.box_size = [float(x) for x in box_size]
         else:
             raise Exception('Please provide either 1 number or list of 3'+
-                            ' numbers for box size')            
+                            ' numbers for box size')
+            
+    def _check_valide_outside_sphere(self, outside_sphere):
+
+        '''
+        Function to check outside_sphere argument is valid. If it is, it is 
+        returned as a list of floats.
+        '''
         
         if outside_sphere is not None:
             if type(outside_sphere) is int:
                 outside_sphere = float(outside_sphere)
                 
             if type(outside_sphere) is float:    
-                self.outside_sphere = [outside_sphere, outside_sphere, outside_sphere]
+                return [outside_sphere, outside_sphere, outside_sphere]
             elif type(outside_sphere) is list:
                 if len(outside_sphere) != 3:
                     raise Exception('Please provide either 1 number or list of 3'+
                                     ' numbers for outside_sphere')
                 else:
-                    self.outside_sphere = [float(x) for x in outside_sphere]
+                    return [float(x) for x in outside_sphere]
             else:
                 raise Exception('Please provide either 1 number or list of 3'+
                                 ' numbers for outside_sphere')
+
+    def _get_cosolvent_pdb(self, cosolvent):
+
+        # Check cosolvent is available
+        if cosolvent not in COSOLVENTS.keys():
+            raise Exception(f'{cosolvent} not in cosolvent directory')
+
+        # Get cosolvent pdb file name
+        cosolvent_pdb = COSOLVENTS[cosolvent][1]
+
+        return cosolvent_pdb
+
+    def _get_ion_pdb(self, ion):
+
+        # Check ion is available
+        if not os.path.isfile(os.path.join(cosolvents_dir.__path__[0], f'{ion}.pdb')):
+            raise Exception(f'{ion} is not available. Please add a pdb file for this' +
+                             'ion to the amberpy/cosolvents directory.')
         else:
-            self.outside_sphere = None
-        
-        self.tolerance = tolerance
+            return os.path.join(cosolvents_dir.__path__[0], f'{ion}.pdb')
 
-    def run(self, cosolvent_pdb, pdb_out, protein_pdb=None):
+    def _copy_and_queue_removal(self, old, new):
 
-        # Annoyling, packmol won't work if the path to the input files go over
-        # the allowed number of columns. To minimise the change of this 
-        # the file paths being to long, copy the input files to the ouput 
-        # directory and pull them from there.
-        out_dir = os.path.dirname(pdb_out)
-
-        tmp_cosolvent = os.path.join(out_dir, os.path.basename(cosolvent_pdb))
-        shutil.copy(cosolvent_pdb, tmp_cosolvent)
-
-        packmol_lines = (f"tolerance {self.tolerance}\n"
-                         "filetype pdb\n"
-                         f"output {pdb_out}\n")
-        
-        # If a protein pdb file is provided, place the protein at the origin
-        if not protein_pdb is None:
-            
-            logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
-                        f"'{os.path.basename(cosolvent_pdb)}') to protein ('{protein_pdb}')"
-                        " using Packmol.")
-            
-            packmol_lines += (f"structure {protein_pdb}\n"
-                              f"  seed 0\n"
-                              "   number 1\n"
-                              "   center\n"
-                              "   fixed 0. 0. 0. 0. 0. 0.\n"
-                              "   add_amber_ter\n"
-                              "end structure\n")
-
-            
-        if self.n_waters is not None:
-            
-            logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
-            f"'{os.path.basename(cosolvent_pdb)}') and {self.n_waters} water molecules to "
-            f"a box with dimensions {self.box_size}.")
-            
-            tmp_water = os.path.join(out_dir, 'water.pdb')
-            shutil.copy(os.path.join(cosolvents_dir.__path__[0], 
-                                     'water.pdb'), tmp_water)
-            
-            packmol_lines += (f'structure {tmp_water} \n'
-                              f'   number {self.n_waters} \n')
-            x, y, z = self.box_size
-            packmol_lines += f'   inside box {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)}\n'
-            
-            if self.outside_sphere:
-                x, y, z = self.outside_sphere
-                packmol_lines += f'   outside sphere 0. 0. 0. {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)} \n'
-            
-            packmol_lines += '   add_amber_ter\nend structure\n'
-        
-        else:
-            
-            logger.info(f"Adding {self.n_cosolvents} copies of cosolvent ("
-            f"'{os.path.basename(cosolvent_pdb)}') to a box with dimensions {self.box_size}.")
-        
-        x, y, z = self.box_size
-        
-        packmol_lines += (f'structure {tmp_cosolvent}\n'
-                       f'   number {self.n_cosolvents}\n')
-        packmol_lines += f'   inside box {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)}\n'
-
-        if self.outside_sphere:
-            x, y, z = self.outside_sphere
-            packmol_lines += f'   outside sphere 0. 0. 0. {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)} \n'    
-            
-        packmol_lines += '   add_amber_ter\nend structure\n'
-
-        run_packmol(packmol_lines)
-
-        try:
-            os.remove(tmp_water)
-        except:
-            pass
-
-        try:
-            os.remove(tmp_cosolvent)
-        except:
-            pass
-
-        logger.info(f"Saving system as '{pdb_out}'")
+        shutil.copy(old, new)
+        self.remove_files.append(new)
 
 class Setup:
     
-    def __init__(self, name, protein_pdb=None, cosolvent=None, directory=os.getcwd()):
+    def __init__(
+        self, 
+        name, 
+        protein_pdb=None, 
+        cosolvents=None, 
+        directory=os.getcwd()
+        ):
         
         # Define list of valid inputs. If adding new inputs to the class, place 
         # them in here
-        input_list = [protein_pdb, cosolvent]
-        
+        input_list = [protein_pdb, cosolvents]
         if all(inp is None for inp in input_list):
             raise Exception('No valid inputs provided')
+        if not type(cosolvents) is list:
+            raise Exception('Cosolvents must be a list')
         
         # If no name given, generate the name from the input files
-        if name is None:
-            self.name = get_name_from_input_list(input_list)
+        if name is None and len(cosolvents) == 1:
+            self.name = get_name_from_input_list([protein_pdb, cosolvents[0]])
+        elif name is None and cosolvent_list is not None:
+            logger.error('Multilple cosolvents are used in setup. Please name'+
+                         ' explicitly.')
         
         # Set protein_pdb attribute even if it is None so that we can let 
         # PackmolInput handle whether or not there is a protein
         self.protein_pdb = protein_pdb
             
-        if cosolvent is not None:    
-            self._get_cosolvent_file_names(cosolvent)
+        if cosolvents is not None:   
+            if type(cosolvents) is list:
+                self._check_cosolvents(cosolvents)
             
         self.directory = directory
         
@@ -332,20 +384,22 @@ class Setup:
                     n_waters = None, 
                     n_cosolvents = 100, 
                     box_size = [50,50,50],
+                    ions = None,
                     packmol_input = None):
         
         if packmol_input is None:
             
             if box_size is None:
                 raise Exception('Please provide a box size')
-
-            kwargs = {}
             
-            kwargs['box_size'] = box_size
-            kwargs['n_waters'] = n_waters
-            kwargs['n_cosolvents'] = n_cosolvents
-            
-            packmol = PackmolInput(**kwargs)
+            packmol = PackmolInput(box_size=box_size)
+            packmol.add_protein(self.protein_pdb)
+            for cosolvent in self.cosolvents:
+                packmol.add_cosolvent(cosolvent, n_cosolvents)
+            if ions is not None:
+                packmol.add_ions(ions)
+            if n_waters is not None:
+                packmol.add_waters(n_waters)
             
         elif isinstance(packmol_input, PackmolInput):
             packmol = packmol_input
@@ -353,7 +407,7 @@ class Setup:
         else:
             raise Exception('packmol_input must be an instance of the PackmolInput class or None')
         
-        packmol.run(self.cosolvent_pdb, self.packmol_pdb, self.protein_pdb)
+        packmol.run(self.packmol_pdb)
 
     def run_tleap(self,
                   box_distance: float = 12.0,
@@ -412,27 +466,25 @@ class Setup:
         run_parmed(self.parm7, hmr_parm7)
         self.parm7 = hmr_parm7
         
-    def _get_cosolvent_file_names(self, cosolvent):
+    def _check_cosolvents(self, cosolvents):
         
-        # Check cosolvent is available
-        if cosolvent not in COSOLVENTS.keys():
-            raise Exception(f'{cosolvent} not in cosolvent directory')
-            
-        self.cosolvent = cosolvent
-        
-        # Get cosolvent type from COSOLVENTS dict
-        cosolvent_type = COSOLVENTS[self.cosolvent][0]
-        
-        # Get cosolvent pdb file name
-        self.cosolvent_pdb = COSOLVENTS[self.cosolvent][1]
-        
-        # If cosolvent is a small molecule, add an frcmod and mol2 file
-        if cosolvent_type == 'small_molecules':
-            cosolvent_mol2 = COSOLVENTS[self.cosolvent][2]
-            cosolvent_frcmod = COSOLVENTS[self.cosolvent][3]
-            self.frcmod_list = [cosolvent_frcmod]
-            self.mol2_dict = {os.path.basename(cosolvent_mol2).split('.')[0] : cosolvent_mol2}
-            
+        self.cosolvents = []
+        self.frcmod_list =[]
+        self.mol2_dict = {}
+        for cosolvent in cosolvents:
+            # Check cosolvent is available
+            if cosolvent not in COSOLVENTS.keys():
+                raise Exception(f'{cosolvent} not in cosolvent directory')
+            self.cosolvents.append(cosolvent)
+            # Get cosolvent type from COSOLVENTS dict
+            cosolvent_type = COSOLVENTS[cosolvent][0]
+            # If cosolvent is a small molecule, add an frcmod and mol2 file
+            if cosolvent_type == 'small_molecules':
+                cosolvent_mol2 = COSOLVENTS[cosolvent][2]
+                cosolvent_frcmod = COSOLVENTS[cosolvent][3]
+                self.frcmod_list.append(cosolvent_frcmod)
+                self.mol2_dict[os.path.basename(cosolvent_mol2).split('.')[0]] = cosolvent_mol2
+                
         self.packmol_pdb = os.path.join(self.directory, self.name) + '.packmol.pdb'
 
 def run_parmed(parm7, HMRparm7):

@@ -36,7 +36,7 @@ class Experiment(Setup, Simulation):
         experiment is a replica.
     '''
     
-    def __init__(self, name, replica_name=None, protein_pdb=None, cosolvent=None):
+    def __init__(self, name, replica_name=None, protein_pdb=None, cosolvents=None):
         '''
         Parameters
         ----------
@@ -66,14 +66,18 @@ class Experiment(Setup, Simulation):
 
         # Define list of valid inputs. If adding new inputs to the class, place 
         # them in here
-        input_list = [protein_pdb, cosolvent]
-        
+        input_list = [protein_pdb, cosolvents]
         if all(inp is None for inp in input_list):
             raise Exception('No valid inputs provided')
+        if not type(cosolvents) is list:
+            raise Exception('Cosolvents must be a list')
         
         # If no name given, generate the name from the input files
-        if name is None:
-            self.name = get_name_from_input_list(input_list)
+        if name is None and len(cosolvents) == 1:
+            self.name = get_name_from_input_list([protein_pdb, cosolvents[0]])
+        elif name is None and cosolvent_list is not None:
+            logger.error('Multilple cosolvents are used in setup. Please name'+
+                         ' explicitly.')
         else:
             self.name = name
 
@@ -106,7 +110,7 @@ class Experiment(Setup, Simulation):
 
         get_module_logger(__name__, os.path.join(self.directory, self.name + '.log'))
 
-        Setup.__init__(self, self.name, protein_pdb, cosolvent, self.directory)
+        Setup.__init__(self, self.name, protein_pdb, cosolvents, self.directory)
         
         Simulation.__init__(self, self.name, self.parm7, self.rst7, self.directory)
         
@@ -142,9 +146,9 @@ class ProteinExperiment(Experiment):
 
 class CosolventExperiment(Experiment):
     
-    def __init__(self, cosolvent, name = None, replica_name = None):
+    def __init__(self, cosolvents, name = None, replica_name = None):
 
-        Experiment.__init__(self, name, replica_name, cosolvent=cosolvent)
+        Experiment.__init__(self, name, replica_name, cosolvent=cosolvents)
             
     def make_system(self,
                     n_waters = None, 
@@ -155,7 +159,7 @@ class CosolventExperiment(Experiment):
                     hmr: bool = True,
                     packmol_input: PackmolInput = None):
         
-        self.run_packmol(n_waters, n_cosolvents, box_size, packmol_input)
+        self.run_packmol(n_waters, n_cosolvents, box_size, ions, packmol_input)
         
         if n_waters is None:
             self.run_tleap(tleap_input=TleapInput(distance=0.0, ions=ions))
@@ -169,9 +173,9 @@ class CosolventExperiment(Experiment):
         
 class ProteinCosolventExperiment(CosolventExperiment, ProteinExperiment):
     
-    def __init__(self, protein_pdb, cosolvent, name = None, replica_name = None):
+    def __init__(self, protein_pdb, cosolvents, name = None, replica_name = None):
         
-        Experiment.__init__(self, name, replica_name, protein_pdb=protein_pdb, cosolvent=cosolvent)
+        Experiment.__init__(self, name, replica_name, protein_pdb=protein_pdb, cosolvents=cosolvents)
             
       
         
