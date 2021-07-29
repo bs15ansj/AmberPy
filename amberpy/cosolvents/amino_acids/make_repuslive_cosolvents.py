@@ -9,9 +9,9 @@ import tempfile
 from subprocess import PIPE, Popen
 import os
 
-amino_acids = ['ALZ', 'ARZ', 'ASZ', 'ASY', 'ASX', 'CYZ', 'CYY', 'CYW', 'GLZ', 'GLX', 'GLW', 'GLV', 'HIZ', 'HIY', 'HIX', 'HYZ', 'ILZ', 'LEZ', 'LYZ', 'LYY', 'MEZ', 'PHZ', 'PRZ', 'SEZ', 'THZ', 'TRZ', 'TYZ', 'VAZ']
+amino_acids = ['ALZ', 'ARZ', 'ASY', 'ASX', 'CYY', 'GLX', 'GLW', 'GLV', 'HIZ', 'HIY', 'HIX', 'ILZ', 'LEZ', 'LYY', 'MEZ', 'PHZ', 'PRZ', 'SEZ', 'THZ', 'TRZ', 'TYZ', 'VAZ']
 for amino_acid in amino_acids:
-    lines = "source leaprc.protein.repulsiveCA\n"
+    lines = "source leaprc.protein.repulsiveCA13\n"
     lines += "mol = sequence {ACE" + f" {amino_acid} " + "NME}\n"
     lines += f"savepdb mol {amino_acid}.pdb\n"
     lines += f"saveamberparm mol {amino_acid}.parm7 {amino_acid}.rst7\n"
