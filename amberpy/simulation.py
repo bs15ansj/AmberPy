@@ -644,7 +644,7 @@ class Simulation:
             target_temperature: float = 310.0,
             nb_cutoff: float = 9.0,
             simulation_time: float = 100.0,
-            save_frame_frequency: int = 1000,
+            save_frame_frequency: int = 25000,
             md_input: ProductionInput = None
             ):
         
