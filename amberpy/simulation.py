@@ -644,6 +644,7 @@ class Simulation:
             target_temperature: float = 310.0,
             nb_cutoff: float = 9.0,
             simulation_time: float = 100.0,
+            save_frame_frequency: int = 1000,
             md_input: ProductionInput = None
             ):
         
@@ -682,6 +683,7 @@ class Simulation:
             kwargs['cut'] = nb_cutoff
             kwargs['nstlim'] = int((1000*simulation_time)/kwargs['dt'])
             kwargs['temp0'] = target_temperature
+            kwargs['ntwx'] = save_frame_frequency
             
             # Add a ProductionInput object to the simulation using the key 
             # word arguments            
