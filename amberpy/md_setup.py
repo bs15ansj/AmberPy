@@ -393,7 +393,8 @@ class Setup:
                 raise Exception('Please provide a box size')
             
             packmol = PackmolInput(box_size=box_size)
-            packmol.add_protein(self.protein_pdb)
+            if self.protein_pdb is not None:
+                packmol.add_protein(self.protein_pdb)
             for cosolvent in self.cosolvents:
                 packmol.add_cosolvent(cosolvent, n_cosolvents)
             if ions is not None:

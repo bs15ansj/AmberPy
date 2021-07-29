@@ -148,13 +148,14 @@ class CosolventExperiment(Experiment):
     
     def __init__(self, cosolvents, name = None, replica_name = None):
 
-        Experiment.__init__(self, name, replica_name, cosolvent=cosolvents)
+        Experiment.__init__(self, name, replica_name, cosolvents=cosolvents)
             
     def make_system(self,
                     n_waters = None, 
                     n_cosolvents = 100, 
                     box_size = [50,50,50],
                     ions: dict = {'Na+': 0, 'Cl-':0},
+                    protein_force_field = 'ff14SB',
                     distance: float = 12.0,
                     hmr: bool = True,
                     packmol_input: PackmolInput = None):
@@ -162,9 +163,11 @@ class CosolventExperiment(Experiment):
         self.run_packmol(n_waters, n_cosolvents, box_size, ions, packmol_input)
         
         if n_waters is None:
-            self.run_tleap(tleap_input=TleapInput(distance=0.0, ions=ions))
+            self.run_tleap(tleap_input=TleapInput(distance=0.0, ions=ions, 
+            protein_force_field=protein_force_field))
         elif type(n_waters) is int:
-            self.run_tleap(tleap_input=TleapInput(ions=ions, solvate=False, box_size=box_size))
+            self.run_tleap(tleap_input=TleapInput(ions=ions, solvate=False, box_size=box_size, 
+            protein_forcefield=protein_force_field))
         else:
             raise Exception('n_waters must be an integer or None')
         
