@@ -269,7 +269,10 @@ class PackmolInput:
         logger.info(f"Saving system as '{pdb_out}'")
         
         for f in self.remove_files:
-            os.remove(f)
+            try:
+                os.remove(f)
+            except FileNotFoundError:
+                pass
 
     def _check_valid_box_size(self, box_size):
         
