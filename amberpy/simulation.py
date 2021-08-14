@@ -298,10 +298,10 @@ class MDInput:
             # If positional restraints are turned on, add the ntr flag and 
             # write the restraint mask
             if self.posres:
+                ((a, b), c) = self.posres
                 f.write('\tntr=1,\n')
-                f.write('/\nProtein posres\n1.0\nRES ')
-                for a, b in self.posres:
-                    f.write(f'{a} {b} ')
+                f.write(f'/\nProtein posres\n{c}\nRES ')
+                f.write(f'{a} {b} ')
                 f.write('\nEND\nEND')
             else:
                 f.write('/\n')
@@ -488,7 +488,7 @@ class Simulation:
             steepest_descent_steps: int = 2500,
             conjugate_gradient_steps: int = 2500,
             nb_cutoff: float = 9.0,
-            restraints: Union[str, tuple] = 'protein',
+            restraints: Union[str, tuple] = ('protein', 1),
             md_input: MinimisationInput = None):
         
         '''Adds a minimisation step to the simulation.
@@ -506,8 +506,9 @@ class Simulation:
             
         restraints : str or tuple, optional
             Add resraints to either the entire protein, e.g. restraints = 
-            "protein", or to the residues defined by a length 2 tuple e.g. 
-            restraints = (1, 500).
+            ("protein", 1), or to the residues anddefined by a length 3 tuple e.g. 
+            restraints = ((1, 500), 1). The second element of the tuple is 
+            the restraint weight in kcal/mol.
             
         md_input : MinimisationInput, optional
             Overrides all other parameters and instead uses a MinimisationInput
@@ -563,7 +564,7 @@ class Simulation:
             target_temperature: float = 310.0,
             nb_cutoff: float = 9.0,
             simulation_time: float = 125.0,
-            restraints: Union[str, tuple] = 'protein',
+            restraints: Union[str, tuple] = ('protein', 1),
             md_input: EquilibrationInput = None):
     
         '''Adds a equilibration step to the simulation.
@@ -645,6 +646,7 @@ class Simulation:
             nb_cutoff: float = 9.0,
             simulation_time: float = 100.0,
             save_frame_frequency: int = 25000,
+            restraints: Union[str, tuple] = None,
             md_input: ProductionInput = None
             ):
         
@@ -684,6 +686,20 @@ class Simulation:
             kwargs['nstlim'] = int((1000*simulation_time)/kwargs['dt'])
             kwargs['temp0'] = target_temperature
             kwargs['ntwx'] = save_frame_frequency
+
+            # If restraints are given process them into MDInput compatible 
+            # argument 
+            if restraints is not None:
+                
+                posres = self._restraints_from_arg(restraints)
+                
+                # If 'protein' is given as the restraint argument, but this 
+                # class has been made directly (with Simulation() rather than
+                # Experiment()) and therefore doesn't have a protein_termini
+                # attribute, posres will be None so do not set protein 
+                # restraints
+                if posres is not None:
+                    kwargs['posres'] = posres
             
             # Add a ProductionInput object to the simulation using the key 
             # word arguments            
@@ -802,20 +818,23 @@ class Simulation:
         restraints : tuple
             MDInput object posres parameter.
         '''
-        
-        if arg == 'protein':
+        try:
+            residues, weight = arg
+        except:
+            raise Exception('Posres argument must be a length 2 tuple')
+
+        if residues == 'protein':
             try:
-                restraints = self.protein_termini
+                residues = self.protein_termini
             except:
-                restraints = None
-        elif type(arg) is tuple:
-            if len(arg) == 2:
-                restraints = [arg]
-            else:
-                raise Exception(f'Protein restraint tuple must be length 2, not {len(arg)}')
+                return None
+
+        elif type(residues) is tuple:
+            if len(residues) != 2:
+                raise Exception(f'Protein restraint tuple must be length 2, not {len(residues)}')
         else:
-            raise Exception(f'Restraint argument can either be "protein" or tuple, not {type(arg)}')
+            raise Exception(f'Restraint argument can either be "protein" or tuple, not {type(residues)}')
             
-        return restraints
+        return (residues, weight)
 
     
