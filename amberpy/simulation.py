@@ -482,6 +482,7 @@ class Simulation:
         self.md_inputs = []
         self.md_job_names = []
         self.trajectories = []
+        self.completed_steps = []
     
     def add_minimisation_step(
             self, 
@@ -546,11 +547,13 @@ class Simulation:
             # word arguments
             md_input = MinimisationInput(**kwargs)
             self.md_steps.append(md_input)
+            self.completed_steps.append(0)
         
         # If Minimisation object is provided just add that
         elif isinstance(md_input, MinimisationInput):
             
             self.md_steps.append(md_input)
+            self.completed_steps.append(0)
             logger.info('Adding minimisation step from MinimisationInput')
             
         else:
@@ -628,10 +631,12 @@ class Simulation:
             # word arguments
             md_input = EquilibrationInput(**kwargs)
             self.md_steps.append(md_input)
+            self.completed_steps.append(0)
         
         # If Equilibration object is provided just add that
         elif isinstance(md_input, EquilibrationInput):
             self.md_steps.append(md_input)
+            self.completed_steps.append(0)
             logger.info('Adding equilibration step from EquilibrationInput')
             
         else:
@@ -704,10 +709,12 @@ class Simulation:
             # Add a ProductionInput object to the simulation using the key 
             # word arguments            
             self.md_steps.append(ProductionInput(**kwargs))
+            self.completed_steps.append(0)
         
         # If Production object is provided just add that
         elif isinstance(md_input, ProductionInput):
             self.md_steps.append(md_input)
+            self.completed_steps.append(0)
             
         else:
             raise Exception('md_input must be an instance of the ProductionInput class or None')
@@ -787,19 +794,24 @@ class Simulation:
                 if step_number != 1:
                     kwargs['hold_jid'] = self.md_job_names[step_number+attempt_number-2]
 
-                
+                if self.completed_steps[step_number-1] == 0:
+                    error_code = crossbow(*args, **kwargs)
 
-                error_code = crossbow(*args, **kwargs)
-
-                if error_code == 0:
+                    if error_code == 0:
+                        rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
+                        self.completed_steps[step_number-1] = 1
+                        break
+                    elif error_code == 1:
+                        rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
+                        attempt_number += 1
+                        self.completed_steps.append(0)
+                        continue
+                    elif error_code == 2:
+                        self.run(arc, cores)
+                        
+                else:
                     rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
-                    break
-                elif error_code == 1:
-                    rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
-                    attempt_number += 1
-                    continue
-                elif error_code == 2:
-                    self.run(arc, cores)
+                    break                    
         
     def _restraints_from_arg(self, arg):
         
