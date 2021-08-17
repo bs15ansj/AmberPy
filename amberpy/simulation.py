@@ -719,7 +719,7 @@ class Simulation:
         else:
             raise Exception('md_input must be an instance of the ProductionInput class or None')
 
-        logger.debug(f'Production flags: {md_input.arg_dict}')
+        #logger.debug(f'Production flags: {md_input.arg_dict}')
 
     def run(self,
             arc = 3,
