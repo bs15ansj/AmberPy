@@ -845,7 +845,12 @@ class Simulation:
             if len(residues) != 2:
                 raise Exception(f'Protein restraint tuple must be length 2, not {len(residues)}')
         else:
-            raise Exception(f'Restraint argument can either be "protein" or tuple, not {type(residues)}')
+            if type(residues) is list:
+                for residue in residues:
+                    if len(residue) != 2:
+                        raise Exception(f'Protein restraint tuple must be length 2, not {len(residue)}')
+            else:
+                raise Exception(f'Restraint argument can either be "protein" or tuple, not {type(residues)}')
             
         return (residues, weight)
 
