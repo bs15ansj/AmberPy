@@ -267,13 +267,13 @@ class PackmolInput:
         run_packmol(self.packmol_lines)
 
         logger.info(f"Saving system as '{pdb_out}'")
-        
+        '''
         for f in self.remove_files:
             try:
                 os.remove(f)
             except FileNotFoundError:
                 pass
-
+        '''
     def _check_valid_box_size(self, box_size):
         
         '''
@@ -341,8 +341,9 @@ class PackmolInput:
 
     def _copy_and_queue_removal(self, old, new):
 
-        shutil.copy(old, new)
-        self.remove_files.append(new)
+        pass
+        #shutil.copy(old, new)
+        #self.remove_files.append(new)
 
 class Setup:
     
@@ -359,7 +360,7 @@ class Setup:
         input_list = [protein_pdb, cosolvents]
         if all(inp is None for inp in input_list):
             raise Exception('No valid inputs provided')
-        if not type(cosolvents) is list:
+        if not type(cosolvents) is list and not cosolvents is None:
             raise Exception('Cosolvents must be a list')
         
         # If no name given, generate the name from the input files
@@ -376,12 +377,15 @@ class Setup:
         if cosolvents is not None:   
             if type(cosolvents) is list:
                 self._check_cosolvents(cosolvents)
+        else:
+            self.cosolvents = None
             
         self.directory = directory
         
         self.parm7 = os.path.join(self.directory, self.name) + '.parm7'
         self.rst7 = os.path.join(self.directory, self.name) + '.rst7'  
-        self.tleap_pdb = os.path.join(self.directory, self.name) + '.tleap.pdb' 
+        self.tleap_pdb = os.path.join(self.directory, self.name) + '.tleap.pdb'
+        self.packmol_pdb = os.path.join(self.directory, self.name) + '.packmol.pdb'
         
     def run_packmol(self,
                     n_waters = None, 
@@ -398,8 +402,9 @@ class Setup:
             packmol = PackmolInput(box_size=box_size)
             if self.protein_pdb is not None:
                 packmol.add_protein(self.protein_pdb)
-            for cosolvent in self.cosolvents:
-                packmol.add_cosolvent(cosolvent, n_cosolvents)
+            if self.cosolvents is not None:
+                for cosolvent in self.cosolvents:
+                    packmol.add_cosolvent(cosolvent, n_cosolvents)
             if ions is not None:
                 packmol.add_ions(ions)
             if n_waters is not None:
@@ -489,7 +494,7 @@ class Setup:
                 self.frcmod_list.append(cosolvent_frcmod)
                 self.mol2_dict[os.path.basename(cosolvent_mol2).split('.')[0]] = cosolvent_mol2
                 
-        self.packmol_pdb = os.path.join(self.directory, self.name) + '.packmol.pdb'
+        
 
 def run_parmed(parm7, HMRparm7):
 
@@ -601,6 +606,8 @@ def run_packmol(packmol_lines):
     )
     
     out, err = p.communicate()
+
+    print(out)
     
     if 'ERROR' in out:
         out = out.replace('\n', '\n\t')

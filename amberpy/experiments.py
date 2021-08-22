@@ -69,7 +69,7 @@ class Experiment(Setup, Simulation):
         input_list = [protein_pdb, cosolvents]
         if all(inp is None for inp in input_list):
             raise Exception('No valid inputs provided')
-        if not type(cosolvents) is list:
+        if not type(cosolvents) is list and not cosolvents is None:
             raise Exception('Cosolvents must be a list')
         
         # If no name given, generate the name from the input files
