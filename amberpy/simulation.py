@@ -297,11 +297,13 @@ class MDInput:
                     
             # If positional restraints are turned on, add the ntr flag and 
             # write the restraint mask
+            print(self.arg_dict)
             if self.posres:
-                ((a, b), c) = self.posres
+                residues, weight = self.posres
                 f.write('\tntr=1,\n')
-                f.write(f'/\nProtein posres\n{c}\nRES ')
-                f.write(f'{a} {b} ')
+                f.write(f'/\nProtein posres\n{weight}\nRES ')
+                for a, b in residues:
+                    f.write(f'{a} {b} ')
                 f.write('\nEND\nEND')
             else:
                 f.write('/\n')
@@ -705,10 +707,11 @@ class Simulation:
                 # restraints
                 if posres is not None:
                     kwargs['posres'] = posres
-            
+                    
             # Add a ProductionInput object to the simulation using the key 
-            # word arguments            
-            self.md_steps.append(ProductionInput(**kwargs))
+            # word arguments     
+            md_input = ProductionInput(**kwargs)
+            self.md_steps.append(md_input)
             self.completed_steps.append(0)
         
         # If Production object is provided just add that
@@ -719,7 +722,7 @@ class Simulation:
         else:
             raise Exception('md_input must be an instance of the ProductionInput class or None')
 
-        #logger.debug(f'Production flags: {md_input.arg_dict}')
+        logger.debug(f'Production flags: {md_input.arg_dict}')
 
     def run(self,
             arc = 3,
@@ -848,7 +851,12 @@ class Simulation:
             if len(residues) != 2:
                 raise Exception(f'Protein restraint tuple must be length 2, not {len(residues)}')
         else:
-            raise Exception(f'Restraint argument can either be "protein" or tuple, not {type(residues)}')
+            if type(residues) is list:
+                for residue in residues:
+                    if len(residue) != 2:
+                        raise Exception(f'Protein restraint tuple must be length 2, not {len(residue)}')
+            else:
+                raise Exception(f'Restraint argument can either be "protein" or tuple, not {type(residues)}')
             
         return (residues, weight)
 
