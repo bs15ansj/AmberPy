@@ -818,7 +818,9 @@ class Simulation:
                             
                     else:
                         rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
-                        break                    
+                        break              
+                else:
+                    break      
         
     def _restraints_from_arg(self, arg):
         
