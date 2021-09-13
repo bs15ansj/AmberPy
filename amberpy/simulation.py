@@ -779,45 +779,48 @@ class Simulation:
                 # names
                 fname = f'step-{step_number}.{attempt_number}-{step_name}.mdin'
 
-                md_step.write(self.simulation_directory, fname)
-
-                # Get the name for the job from the simulation name, step name, and 
-                # step number
-                step_type = md_step.__str__()
-                job_name = self.name + '.' + step_type[:3] + '.' + str(step_number) + '.' + str(attempt_number)
-                self.md_job_names.append(job_name)
-
-                # Get the positional arguments in a tuple. The positional arguments
-                # for crossbow are (name, user, mdin, parm7, rst7, ref_rst7)
-                args = (job_name, fname, parm7, rst7, ref_rst7)
-                
                 if step_type == 'minimisation':
                     kwargs['minimisation'] = True
                     kwargs['cores'] = cores
                 else:
                     self.trajectories.append(os.path.join(self.simulation_directory, fname.replace('mdin', 'nc')))
 
-                if step_number != 1:
-                    kwargs['hold_jid'] = self.md_job_names[step_number+attempt_number-2]
-
+                # If step is not completed
                 if self.completed_steps[step_number-1] == 0:
-                    error_code = crossbow(*args, **kwargs)
 
-                    if error_code == 0:
+                    md_step.write(self.simulation_directory, fname)
+
+                    # Get the name for the job from the simulation name, step name, and 
+                    # step number
+                    step_type = md_step.__str__()
+                    job_name = self.name + '.' + step_type[:3] + '.' + str(step_number) + '.' + str(attempt_number)
+                    self.md_job_names.append(job_name)
+
+                    # Get the positional arguments in a tuple. The positional arguments
+                    # for crossbow are (name, user, mdin, parm7, rst7, ref_rst7)
+                    args = (job_name, fname, parm7, rst7, ref_rst7)
+
+                    if step_number != 1:
+                        kwargs['hold_jid'] = self.md_job_names[step_number+attempt_number-2]
+                
+                    if self.completed_steps[step_number-1] == 0:
+                        error_code = crossbow(*args, **kwargs)
+
+                        if error_code == 0:
+                            rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
+                            self.completed_steps[step_number-1] = 1
+                            break
+                        elif error_code == 1:
+                            rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
+                            attempt_number += 1
+                            self.completed_steps.append(0)
+                            continue
+                        elif error_code == 2:
+                            self.run(arc, cores)
+                            
+                    else:
                         rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
-                        self.completed_steps[step_number-1] = 1
-                        break
-                    elif error_code == 1:
-                        rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
-                        attempt_number += 1
-                        self.completed_steps.append(0)
-                        continue
-                    elif error_code == 2:
-                        self.run(arc, cores)
-                        
-                else:
-                    rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
-                    break                    
+                        break                    
         
     def _restraints_from_arg(self, arg):
         
