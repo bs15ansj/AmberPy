@@ -108,7 +108,7 @@ class Experiment(Setup, Simulation):
         if self.replica_name is not None:
             self.name = self.name + '-' + str(self.replica_name)
 
-        get_module_logger(__name__, os.path.join(self.directory, self.name + '.log'))
+        self.logger = get_module_logger(__name__, os.path.join(self.directory, self.name + '.log'))
 
         Setup.__init__(self, self.name, protein_pdb, cosolvents, self.directory)
         
