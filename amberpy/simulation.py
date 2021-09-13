@@ -764,7 +764,6 @@ class Simulation:
             kwargs = {}
             kwargs['arc'] = arc
             kwargs['localworkdir'] = self.simulation_directory
-            kwargs['polling-frequency'] = 7200
             
             step_number += 1
             step_name = md_step.__str__()
