@@ -778,7 +778,7 @@ class Simulation:
                 # names
                 fname = f'step-{step_number}.{attempt_number}-{step_name}.mdin'
 
-                if step_type == 'minimisation':
+                if step_name == 'minimisation':
                     kwargs['minimisation'] = True
                     kwargs['cores'] = cores
                 else:
@@ -791,8 +791,7 @@ class Simulation:
 
                     # Get the name for the job from the simulation name, step name, and 
                     # step number
-                    step_type = md_step.__str__()
-                    job_name = self.name + '.' + step_type[:3] + '.' + str(step_number) + '.' + str(attempt_number)
+                    job_name = self.name + '.' + step_name[:3] + '.' + str(step_number) + '.' + str(attempt_number)
                     self.md_job_names.append(job_name)
 
                     # Get the positional arguments in a tuple. The positional arguments
