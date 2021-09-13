@@ -768,7 +768,7 @@ class Simulation:
             step_number += 1
             step_name = md_step.__str__()
             if step_name == 'production':
-                kwargs['pollingfrequency'] == 3600
+                kwargs['pollingfrequency'] = 3600
             
             attempt_number = 0
             
