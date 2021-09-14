@@ -140,7 +140,7 @@ class ProteinExperiment(Experiment):
                     hmr: bool = True,
                     tleap_input: TleapInput = None):
         
-        self.run_tleap(box_distance, box_shape, ions, tleap_input, protein_forcefield=protein_force_field)
+        self.run_tleap(box_distance, box_shape, ions, tleap_input)
         
         if hmr:
             self.run_parmed()
