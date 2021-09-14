@@ -19,18 +19,74 @@ parameters = {'disconnect': False,
               'resource': '',
               'sge-peflag': 'ib',}
 
-def crossbow(name, 
-             mdin, 
-             parm7, 
-             rst7,
-             ref_rst7,
-             gpu=True,
-             cores=None, 
-             hold_jid='',
-             arc=3,
-             localworkdir='',
-             minimisation=False,
-             pollingfrequency=60):
+def run_cpptraj(name, 
+          cpptraj,
+          nc, 
+          parm7, 
+          rst7,
+          ref_parm7,
+          ref_rst7,
+          arc=3,
+          localworkdir='',
+          pollingfrequency=60):
+    
+    # Job names on arc cannot start with a digit, so if name does, place an 'a'
+    # at the start 
+    if name[0].isdigit():
+        name = 'a'+name
+        print(f"Arc job name can't start with digit, changing to {name}")
+
+    # Remove any job output/error files 
+    try:
+        for f in glob.glob(os.path.join(localworkdir, f'{name}.o*')):
+            os.remove(f)
+    except IndexError:
+        pass
+    try:
+        for f in glob.glob(os.path.join(localworkdir, f'{name}.e*')):
+            os.remove(f)
+    except IndexError:
+        pass   
+
+    parameters['cores'] = str(cores)
+    if arc == 3:
+        parameters['resource'] = 'arc3-cpu'
+    elif arc == 4:
+        parameters['resource'] = 'arc4-cpu'
+
+    
+    # Set exectutable arguments from inputs/outputs
+    parameters['executableargs'] = f'cpptraj < {cpptraj}'
+
+    # Add some extra parameters
+    parameters['log'] = os.path.join(localworkdir, f'{name}.log')
+    parameters['hold_jid'] = hold_jid
+    parameters['jobname'] = name
+    parameters['upload-include'] = ', '.join([nc, parm7, ref_parm7, rst7, ref_rst7])
+    parameters['upload-exclude'] = '*'
+    parameters['download-include'] = '*'
+    parameters['download-exclude'] = ', '.join([nc, parm7, ref_parm7, rst7, ref_rst7])
+    parameters['localworkdir'] = localworkdir
+    parameters['polling-frequency'] = pollingfrequency
+    
+    # Run longbow with empty jobs list and parameters
+    jobs = {}
+    
+    longbow(jobs, parameters)
+
+
+def run_pmemd(name, 
+          mdin, 
+          parm7, 
+          rst7,
+          ref_rst7,
+          gpu=True,
+          cores=None, 
+          hold_jid='',
+          arc=3,
+          localworkdir='',
+          minimisation=False,
+          pollingfrequency=60):
     
     # Get the output file names from the inputs
     mdout = mdin.replace('mdin', 'mdout')

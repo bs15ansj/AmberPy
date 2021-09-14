@@ -16,7 +16,7 @@ ProductionInput
     ensemble.
 
 """
-from amberpy.crossbow import crossbow
+from amberpy.crossbow import run_pmemd
 from amberpy.utilities import get_name_from_file
 import os
 import copy
@@ -804,7 +804,7 @@ class Simulation:
                         kwargs['hold_jid'] = self.md_job_names[step_number+attempt_number-2]
                 
                     if self.completed_steps[step_number-1] == 0:
-                        error_code = crossbow(*args, **kwargs)
+                        error_code = run_pmemd(*args, **kwargs)
 
                         if error_code == 0:
                             rst7 = f'step-{step_number}.{attempt_number}-{step_name}.rst7'
