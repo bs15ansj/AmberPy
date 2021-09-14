@@ -136,10 +136,11 @@ class ProteinExperiment(Experiment):
                     box_distance: float = 12.0,
                     box_shape: str = 'box',
                     ions: dict = {'Na+': 0, 'Cl-':0}, 
+                    protein_force_field = 'ff14SB',
                     hmr: bool = True,
                     tleap_input: TleapInput = None):
         
-        self.run_tleap(box_distance, box_shape, ions, tleap_input)
+        self.run_tleap(box_distance, box_shape, ions, tleap_input, protein_forcefield=protein_force_field)
         
         if hmr:
             self.run_parmed()
