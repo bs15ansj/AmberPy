@@ -463,7 +463,7 @@ class Setup:
          #   print(type(tleap_input))
           #  raise Exception('tleap_input must be an instance of the TleapInput class or None')
         
-        if hasattr(self, 'packmol_pdb'):
+        if os.path.isfile(self.packmol_pdb):
             tleap.run(self.packmol_pdb, self.parm7, self.rst7, self.tleap_pdb)
         else:
             tleap.run(self.protein_pdb, self.parm7, self.rst7, self.tleap_pdb)
