@@ -387,8 +387,6 @@ class Setup:
         self.tleap_pdb = os.path.join(self.directory, self.name) + '.tleap.pdb'
         self.packmol_pdb = os.path.join(self.directory, self.name) + '.packmol.pdb'
 
-        print(self.mol2_dict)
-        print(self.frcmod_list)
         
     def run_packmol(self,
                     n_waters = None, 
