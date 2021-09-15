@@ -492,7 +492,8 @@ class Simulation:
             conjugate_gradient_steps: int = 2500,
             nb_cutoff: float = 9.0,
             restraints: Union[str, tuple] = ('protein', 1),
-            md_input: MinimisationInput = None):
+            md_input: MinimisationInput = None,
+            quiet=False):
         
         '''Adds a minimisation step to the simulation.
         
@@ -522,10 +523,11 @@ class Simulation:
         # If no md_input provided, build one from the key word arguments
         if md_input is None:
             
-            logger.info('Adding minimisation step: steepest_descent_steps='
-                        f'{steepest_descent_steps}, conjugate_gradient_steps='
-                        f'{conjugate_gradient_steps}, nb_cutoff={nb_cutoff} An'
-                        f"gstroms, restraints='{restraints}'")
+            if not quiet:
+                logger.info('Adding minimisation step: steepest_descent_steps='
+                            f'{steepest_descent_steps}, conjugate_gradient_steps='
+                            f'{conjugate_gradient_steps}, nb_cutoff={nb_cutoff} An'
+                            f"gstroms, restraints='{restraints}'")
             kwargs = {}
             kwargs['ncyc'] = steepest_descent_steps
             kwargs['maxcyc'] = steepest_descent_steps + conjugate_gradient_steps
@@ -556,12 +558,14 @@ class Simulation:
             
             self.md_steps.append(md_input)
             self.completed_steps.append(0)
-            logger.info('Adding minimisation step from MinimisationInput')
+            if not quiet:
+                logger.info('Adding minimisation step from MinimisationInput')
             
         else:
             raise Exception('md_input must be an instance of the MinimisationInput class or None')
 
-        logger.debug(f'Minimisation flags: {md_input.arg_dict}')
+        if not quiet:
+            logger.debug(f'Minimisation flags: {md_input.arg_dict}')
 
     def add_equilibration_step(
             self,
@@ -570,7 +574,8 @@ class Simulation:
             nb_cutoff: float = 9.0,
             simulation_time: float = 125.0,
             restraints: Union[str, tuple] = ('protein', 1),
-            md_input: EquilibrationInput = None):
+            md_input: EquilibrationInput = None,
+            quiet=False):
     
         '''Adds a equilibration step to the simulation.
         
@@ -601,12 +606,12 @@ class Simulation:
         
         # If no md_input provided, build one from the key word arguments
         if md_input is None:
-            
-            logger.info('Adding equilibration step: inintial_temperature='
-                        f'{initial_temperature}K, target_temperature='
-                        f'{target_temperature}K, nb_cutoff={nb_cutoff} Angstro'
-                        f'ms, simulation_time={simulation_time}ps, restraints='
-                        f"'{restraints}'")
+            if not quiet:
+                logger.info('Adding equilibration step: inintial_temperature='
+                            f'{initial_temperature}K, target_temperature='
+                            f'{target_temperature}K, nb_cutoff={nb_cutoff} Angstro'
+                            f'ms, simulation_time={simulation_time}ps, restraints='
+                            f"'{restraints}'")
             
             kwargs = {}
             kwargs['tempi'] = initial_temperature
@@ -639,12 +644,14 @@ class Simulation:
         elif isinstance(md_input, EquilibrationInput):
             self.md_steps.append(md_input)
             self.completed_steps.append(0)
-            logger.info('Adding equilibration step from EquilibrationInput')
+            if not quiet:
+                logger.info('Adding equilibration step from EquilibrationInput')
             
         else:
             raise Exception('md_input must be an instance of the EquilibrationInput class or None')
-            
-        logger.debug(f'Equilibration flags: {md_input.arg_dict}')
+        
+        if not quiet:
+            logger.debug(f'Equilibration flags: {md_input.arg_dict}')
             
     def add_production_step(
             self,
@@ -654,7 +661,8 @@ class Simulation:
             simulation_time: float = 100.0,
             save_frame_frequency: int = 25000,
             restraints: Union[str, tuple] = None,
-            md_input: ProductionInput = None
+            md_input: ProductionInput = None,
+            quiet=False
             ):
         
         '''Adds a Production step to the simulation.
@@ -682,10 +690,10 @@ class Simulation:
         
         # If no md_input provided, build one from the key word arguments
         if md_input is None:
-            
-            logger.info('Adding production step: target_temperature='
-                        f'{target_temperature}K, nb_cutoff={nb_cutoff} Angstro'
-                        f'ms, simulation_time={simulation_time}ns')
+            if not quiet:
+                logger.info('Adding production step: target_temperature='
+                            f'{target_temperature}K, nb_cutoff={nb_cutoff} Angstro'
+                            f'ms, simulation_time={simulation_time}ns')
             
             kwargs = {}
             kwargs['dt'] = timestep
@@ -721,8 +729,8 @@ class Simulation:
             
         else:
             raise Exception('md_input must be an instance of the ProductionInput class or None')
-
-        logger.debug(f'Production flags: {md_input.arg_dict}')
+        if not quiet:
+            logger.debug(f'Production flags: {md_input.arg_dict}')
 
     def run(self,
             arc = 3,
