@@ -386,6 +386,9 @@ class Setup:
         self.rst7 = os.path.join(self.directory, self.name) + '.rst7'  
         self.tleap_pdb = os.path.join(self.directory, self.name) + '.tleap.pdb'
         self.packmol_pdb = os.path.join(self.directory, self.name) + '.packmol.pdb'
+
+        print(self.mol2_dict)
+        print(self.frcmod_list)
         
     def run_packmol(self,
                     n_waters = None, 
@@ -458,12 +461,14 @@ class Setup:
                 if len(self.frcmod_list) > 0:
                     kwargs['frcmod_list'] = self.frcmod_list
                     kwargs['mol2_dict'] = self.mol2_dict
-                    kwargs
-            
+
             tleap = TleapInput(**kwargs)
         
         else:
             tleap = tleap_input
+
+            tleap_input.frcmod_list = self.frcmod_list
+            tleap_input.mol2_dict = self.mol2_dict
             
         #else:
          #   print(type(tleap_input))
