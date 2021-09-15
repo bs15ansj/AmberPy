@@ -453,6 +453,12 @@ class Setup:
             kwargs['distance'] = box_distance
             kwargs['shape'] = box_shape
             kwargs['ions'] = ions
+
+            if hasattr(self, 'frcmod_list'):
+                if len(self.frcmod_list) > 0:
+                    kwargs['frcmod_list'] = self.frcmod_list
+                    kwargs['mol2_dict'] = self.mol2_dict
+                    kwargs
             
             tleap = TleapInput(**kwargs)
         
