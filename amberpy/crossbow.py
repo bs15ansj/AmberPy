@@ -24,11 +24,12 @@ def run_cpptraj(name,
           nc, 
           parm7, 
           rst7,
-          ref_parm7,
-          ref_rst7,
+          ref_parm7='',
+          ref_rst7='',
           arc=3,
           localworkdir='',
-          pollingfrequency=60):
+          pollingfrequency=60,
+          stagingfrequency=60):
     
     # Job names on arc cannot start with a digit, so if name does, place an 'a'
     # at the start 
@@ -68,6 +69,7 @@ def run_cpptraj(name,
     parameters['download-exclude'] = ', '.join([nc, parm7, ref_parm7, rst7, ref_rst7])
     parameters['localworkdir'] = localworkdir
     parameters['polling-frequency'] = pollingfrequency
+    parameters['staging-frequency'] = stagingfrequency
     
     # Run longbow with empty jobs list and parameters
     jobs = {}
