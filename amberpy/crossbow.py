@@ -88,7 +88,8 @@ def run_pmemd(name,
           arc=3,
           localworkdir='',
           minimisation=False,
-          pollingfrequency=60):
+          pollingfrequency=60,
+          stagingfrequency=60):
     
     # Get the output file names from the inputs
     mdout = mdin.replace('mdin', 'mdout')
@@ -156,7 +157,8 @@ def run_pmemd(name,
     parameters['download-exclude'] = '*'
     parameters['localworkdir'] = localworkdir
     parameters['polling-frequency'] = pollingfrequency
-    
+    parameters['staging-frequency'] = stagingfrequency
+
     # Run longbow with empty jobs list and parameters
     jobs = {}
     
