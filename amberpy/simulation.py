@@ -297,7 +297,6 @@ class MDInput:
                     
             # If positional restraints are turned on, add the ntr flag and 
             # write the restraint mask
-            print(self.arg_dict)
             if self.posres:
                 residues, weight = self.posres
                 f.write('\tntr=1,\n')
