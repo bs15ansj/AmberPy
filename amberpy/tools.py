@@ -160,7 +160,12 @@ def strip(pdb, stripped_pdb, residues=['WAT']):
                 f.write(line)
       
     
-
+def count_atoms(cosolvent):
+    
+    parser = PDBParser(QUIET=True)
+    structure = parser.get_structure(cosolvent, f'/home/bs15ansj/AmberPy/amberpy/cosolvents/amino_acids/{cosolvent}.pdb')
+    
+    return len(list(structure.get_atoms()))
     
 
 
