@@ -208,7 +208,7 @@ class PackmolInput:
         x, y, z = self.box_size
 
         self.packmol_lines += (f"structure {cosolvent}.pdb\n"
-                               f"seed {self.seed}\n/"
+                               f"seed {self.seed}\n"
                                 "   resnumbers 2\n"
                                f"   number {n_cosolvents}\n"
                                f"   inside box {0-(x/2)} {0-(y/2)} {0-(z/2)} {0+(x/2)} {0+(y/2)} {0+(z/2)}\n"
