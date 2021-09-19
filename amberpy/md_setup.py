@@ -148,6 +148,7 @@ class PackmolInput:
             self,
             box_size: float = 100.0,
             tolerance: float = 2.0,
+            seed: int = -1
         ):
         '''
         
@@ -168,6 +169,7 @@ class PackmolInput:
         self._check_valid_box_size(box_size)        
         self.tolerance = tolerance
         self.packmol_lines = ''
+        self.seed = seed
 
         # Annoyling, packmol won't work if the path to the input files go over
         # the allowed number of columns. To minimise the chance of 
@@ -262,6 +264,7 @@ class PackmolInput:
 
         self.packmol_lines = (f"tolerance {self.tolerance}\n"
                                "filetype pdb\n"
+                               f"seed {self.seed}\n"
                               f"output {pdb_out}\n") + self.packmol_lines
 
         run_packmol(self.packmol_lines)

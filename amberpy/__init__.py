@@ -5,7 +5,7 @@ import logging
 import multiprocessing_logging
 multiprocessing_logging.install_mp_handler()
 
-logging_level = logging.INFO
+logging_level = logging.DEBUG
 
 def get_module_logger(name, logfile):
     
