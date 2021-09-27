@@ -37,7 +37,8 @@ class TleapInput:
                  no_centre: bool = False,
                  frcmod_list=None,
                  mol2_dict=None,
-                 iso=True):
+                 iso=True, 
+                 atom_types_dict=None):
         
         self.protein_forcefield = protein_forcefield
         self.water_forcefield = water_forcefield
@@ -51,6 +52,7 @@ class TleapInput:
         self.frcmod_list = frcmod_list
         self.mol2_dict = mol2_dict
         self.iso = iso
+        self.atom_types_dict= atom_types_dict
         
         if box_size is not None:
             if type(box_size) is int:
@@ -85,6 +87,11 @@ class TleapInput:
 
         if self.solvate or self.box_size:
             tleap_lines += f"source leaprc.water.{self.water_forcefield}\n"
+
+        if self.atom_types_dict:
+            tleap_lines += "addAtomTypes {\n"
+            for atom, (element, sp) in self.atom_types_dict.items():
+                tleap_lines += "     { "+f'"{atom}"  "{element}" "{sp}"'+" }\n"
         
         if not self.frcmod_list is None:
             for frcmod in self.frcmod_list:
