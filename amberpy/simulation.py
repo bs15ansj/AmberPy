@@ -830,7 +830,16 @@ class Simulation:
                         break              
                 else:
                     break      
-        
+
+    def remove_last_step(self):
+
+        # Set attributes
+        self.md_steps = self.md_steps[:-1]
+        self.md_inputs = self.md_inputs[:-1]
+        self.md_job_names = self.md_job_names[:-1]
+        self.trajectories = self.trajectories[:-1]
+        self.completed_steps = self.completed_steps[:-1]
+
     def _restraints_from_arg(self, arg):
         
         '''Converts restraints from argument to posres MDInput argument. 
