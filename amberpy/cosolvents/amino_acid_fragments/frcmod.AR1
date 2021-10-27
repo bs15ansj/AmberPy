@@ -1,0 +1,22 @@
+Remark line goes here
+MASS
+
+BOND
+2C-CY  400.00   1.458       same as CT-CY, penalty score=  0.0
+
+ANGLE
+2C-CY-NY   80.000     180.000   same as CT-CY-NY, penalty score=  0.0
+CT-2C-CY   63.000     110.000   same as CT-CT-CY, penalty score=  0.0
+CY-2C-HC   50.000     110.000   same as H1-CT-CY, penalty score=  0.1
+
+DIHE
+CT-2C-CY-NY   3    0.000         0.000           1.000      same as X -CT-CY-X , penalty score=  0.0
+HC-2C-CY-NY   3    0.000         0.000           1.000      same as X -CT-CY-X , penalty score=  0.0
+CY-2C-CT-HC   9    1.400         0.000           3.000      same as X -CT-CT-X , penalty score=  0.0
+
+IMPROPER
+
+NONBON
+
+
+

@@ -1,0 +1,24 @@
+Remark line goes here
+MASS
+
+BOND
+
+ANGLE
+C -2C-CT   63.000     111.100   same as C -CT-CT, penalty score=  0.0
+
+DIHE
+CT-2C-C -N    1    0.000         0.000          -4.000      same as CT-CT-C -N 
+CT-2C-C -N    1    0.400         0.000          -3.000      same as CT-CT-C -N 
+CT-2C-C -N    1    0.200         0.000          -2.000      same as CT-CT-C -N 
+CT-2C-C -N    1    0.200         0.000           1.000      same as CT-CT-C -N , penalty score=  0.0
+CT-2C-C -O    6    0.000         0.000           2.000      same as X -C -CT-X , penalty score=  0.0
+C -2C-CT-HC   9    1.400         0.000           3.000      same as X -CT-CT-X , penalty score=  0.0
+
+IMPROPER
+2C-N -C -O         10.5          180.0         2.0          Using general improper torsional angle  X- X- C- O, penalty score=  6.0)
+C -H -N -H          1.1          180.0         2.0          Using the default value
+
+NONBON
+
+
+

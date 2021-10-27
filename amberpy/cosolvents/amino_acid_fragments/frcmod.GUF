@@ -1,0 +1,16 @@
+Remark line goes here
+MASS
+
+BOND
+
+ANGLE
+
+DIHE
+
+IMPROPER
+CT-O2-C -O2        10.5          180.0         2.0          Same as X -X -C -O , penalty score= 47.8 (use general term))
+
+NONBON
+
+
+

@@ -1,0 +1,22 @@
+Remark line goes here
+MASS
+
+BOND
+
+ANGLE
+CT-2C-OH   50.000     109.500   same as CT-CT-OH, penalty score=  0.0
+CT-2C-H1   50.000     109.500   same as CT-CT-H1, penalty score=  0.0
+
+DIHE
+CT-2C-OH-HO   1    0.160         0.000          -3.000      same as HO-OH-CT-CT
+CT-2C-OH-HO   1    0.250         0.000           1.000      same as HO-OH-CT-CT, penalty score=  0.0
+OH-2C-CT-HC   1    0.000         0.000          -3.000      same as HC-CT-CT-OH
+OH-2C-CT-HC   1    0.250         0.000           1.000      same as HC-CT-CT-OH, penalty score=  0.0
+H1-2C-CT-HC   9    1.400         0.000           3.000      same as X -CT-CT-X , penalty score=  0.0
+
+IMPROPER
+
+NONBON
+
+
+

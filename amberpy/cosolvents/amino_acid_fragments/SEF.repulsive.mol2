@@ -1,0 +1,22 @@
+@<TRIPOS>MOLECULE
+SEF
+    6     5     1     0     0
+SMALL
+No Charge or Current Charge
+
+
+@<TRIPOS>ATOM
+      1 C1          -0.6560    -0.0200    -0.0000 CT         1 SEF       0.252598
+      2 O1           0.7370     0.1210    -0.0000 R9         1 SEF      -0.682424
+      3 H1          -1.0130    -0.5430    -0.8840 H1         1 SEF       0.001054
+      4 H2          -1.0130    -0.5440     0.8830 H1         1 SEF       0.001054
+      5 H3          -1.0770     0.9760     0.0010 H1         1 SEF       0.001054
+      6 H4           1.1400    -0.7360     0.0000 HO         1 SEF       0.426664
+@<TRIPOS>BOND
+     1     1     2 1   
+     2     1     3 1   
+     3     1     4 1   
+     4     1     5 1   
+     5     2     6 1   
+@<TRIPOS>SUBSTRUCTURE
+     1 SEF         1 TEMP              0 ****  ****    0 ROOT

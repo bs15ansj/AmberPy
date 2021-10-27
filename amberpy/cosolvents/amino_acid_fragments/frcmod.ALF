@@ -1,0 +1,16 @@
+Remark line goes here
+MASS
+
+BOND
+
+ANGLE
+CY-CT-HC   50.000     110.000   same as H1-CT-CY, penalty score=  0.1
+
+DIHE
+
+IMPROPER
+
+NONBON
+
+
+

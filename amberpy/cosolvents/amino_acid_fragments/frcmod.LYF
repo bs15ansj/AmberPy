@@ -1,0 +1,21 @@
+Remark line goes here
+MASS
+
+BOND
+C8-CT  310.00   1.526       same as CT-CT, penalty score=  0.0
+
+ANGLE
+C8-C8-CT   40.000     109.500   same as CT-CT-CT, penalty score=  0.0
+CT-C8-HC   50.000     109.500   same as CT-CT-HC, penalty score=  0.0
+C8-CT-HC   50.000     109.500   same as CT-CT-HC, penalty score=  0.0
+
+DIHE
+C8-C8-CT-HC   1    0.160         0.000           3.000      same as HC-CT-CT-CT, penalty score=  0.0
+HC-C8-CT-HC   1    0.150         0.000           3.000      same as HC-CT-CT-HC, penalty score=  0.0
+
+IMPROPER
+
+NONBON
+
+
+

@@ -1,0 +1,19 @@
+Remark line goes here
+MASS
+
+BOND
+CO-CT  317.0    1.522       same as CO-2C, penalty score=  0.0
+
+ANGLE
+O2-CO-CT    70.0      117.000   same as O2-CO-2C, penalty score=  0.0
+CO-CT-HC    50.0      109.500   same as CO-2C-HC, penalty score=  0.0
+
+DIHE
+O2-CO-CT-HC   1    0.000         0.000           2.000      same as O2-CO-2C-HC , penalty score=  0.0
+
+IMPROPER
+
+NONBON
+
+
+
